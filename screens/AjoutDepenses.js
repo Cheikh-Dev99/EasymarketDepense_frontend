@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker as NewPicker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
+import Footer from "../components/Footer";
 import {
   Picker,
   StyleSheet,
@@ -9,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Footer from "../components/Footer";
 
 const AjoutDepenses = ({ navigation }) => {
   const [typeDepense, setTypeDepense] = useState("SALAIRE");

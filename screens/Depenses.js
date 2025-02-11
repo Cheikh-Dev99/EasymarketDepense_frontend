@@ -14,6 +14,8 @@ import {
 
 const Depenses = ({ navigation, route }) => {
   const [depensesList, setDepensesList] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [filteredDepenses, setFilteredDepenses] = useState([]);
 
   const getElapsedTime = (timestamp) => {
     const now = Date.now();
@@ -33,7 +35,6 @@ const Depenses = ({ navigation, route }) => {
   useEffect(() => {
     loadDepenses();
   }, []);
-
 
   const loadDepenses = async () => {
     try {
@@ -114,6 +115,28 @@ const Depenses = ({ navigation, route }) => {
     }
   }, [route.params?.refresh]);
 
+  // Fonction de filtrage des dépenses
+  const filterDepenses = (text) => {
+    setSearchText(text);
+    if (text) {
+      const filtered = depensesList.filter((depense) => {
+        const searchTerms = text.toLowerCase();
+        return (
+          depense.title.toLowerCase().includes(searchTerms) ||
+          depense.category.toLowerCase().includes(searchTerms)
+        );
+      });
+      setFilteredDepenses(filtered);
+    } else {
+      setFilteredDepenses(depensesList);
+    }
+  };
+
+  // Mettre à jour les dépenses filtrées quand la liste principale change
+  useEffect(() => {
+    setFilteredDepenses(depensesList);
+  }, [depensesList]);
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -125,13 +148,15 @@ const Depenses = ({ navigation, route }) => {
         />
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher ici"
+          placeholder="Rechercher par titre ou catégorie"
           placeholderTextColor="#95A5A6"
+          value={searchText}
+          onChangeText={filterDepenses}
         />
       </View>
       <View style={styles.main}>
         <FlatList
-          data={depensesList}
+          data={filteredDepenses}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -144,7 +169,9 @@ const Depenses = ({ navigation, route }) => {
                   <Text style={styles.itemTitle}>{item.title}</Text>
                   <Text style={styles.itemAmount}>{item.amount}</Text>
                 </View>
-                <Text style={styles.itemCategory}>{item.category}</Text>
+                <Text style={[styles.itemCategory, { flex: 0 }]}>
+                  {item.category}
+                </Text>
                 <Text style={styles.itemTime}>{item.time}</Text>
               </View>
             </TouchableOpacity>
@@ -247,10 +274,10 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 5,
     backgroundColor: "#D3D3D3",
-    width: "90",
     padding: 3,
     borderRadius: 5,
     color: "#fff",
+    alignSelf: "flex-start",
   },
   itemTime: {
     fontSize: 12,
