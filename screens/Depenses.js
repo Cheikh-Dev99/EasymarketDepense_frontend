@@ -1,6 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Footer from "../components/Footer";
 
 import {
@@ -12,182 +11,59 @@ import {
   View,
 } from "react-native";
 
-const Depenses = ({ navigation, route }) => {
-  const [depensesList, setDepensesList] = useState([]);
-  const [searchText, setSearchText] = useState("");
-  const [filteredDepenses, setFilteredDepenses] = useState([]);
-
-  const getElapsedTime = (timestamp) => {
-    const now = Date.now();
-    const elapsed = now - timestamp;
-
-    const minutes = Math.floor(elapsed / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (minutes < 1) return "à l'instant";
-    if (minutes < 60)
-      return `il y a ${minutes} minute${minutes > 1 ? "s" : ""}`;
-    if (hours < 24) return `il y a ${hours} heure${hours > 1 ? "s" : ""}`;
-    return `il y a ${days} jour${days > 1 ? "s" : ""}`;
-  };
-
-  useEffect(() => {
-    loadDepenses();
-  }, []);
-
-  const loadDepenses = async () => {
-    try {
-      const savedDepenses = await AsyncStorage.getItem("depenses");
-      if (savedDepenses !== null) {
-        const parsedDepenses = JSON.parse(savedDepenses);
-        const updatedDepenses = parsedDepenses.map((dep) => ({
-          ...dep,
-          time: getElapsedTime(dep.timestamp),
-        }));
-        setDepensesList(updatedDepenses);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des dépenses:", error);
+const Depenses = ({ navigation }) => {
+  const depensesData = [
+    {
+      id: "1",
+      title: "Facture novembre SENELEC",
+      amount: "2 360F CFA",
+      category: "ELECTRICITÉ",
+      time: "il y a 5 minutes",
+    },
+    {
+      id: "2",
+      title: "Salaire Fatim",
+      amount: "2 360F CFA",
+      category: "SALAIRE",
+      time: "il y a 30 minutes",
     }
-  };
-
-  // Sauvegarder les dépenses
-  const saveDepenses = async (newList) => {
-    try {
-      await AsyncStorage.setItem("depenses", JSON.stringify(newList));
-    } catch (error) {
-      console.error("Erreur lors de la sauvegarde des dépenses:", error);
-    }
-  };
-
-  // Mettre à jour les temps affichés périodiquement
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDepensesList((currentList) =>
-        currentList.map((dep) => ({
-          ...dep,
-          time: getElapsedTime(dep.timestamp),
-        }))
-      );
-    }, 60000); // Mise à jour toutes les minutes
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Gérer l'ajout d'une nouvelle dépense
-  useEffect(() => {
-    const handleNewDepense = async () => {
-      if (route.params?.newDepense) {
-        try {
-          const savedDepenses = await AsyncStorage.getItem("depenses");
-          const currentDepenses = savedDepenses
-            ? JSON.parse(savedDepenses)
-            : [];
-
-          const newDepense = {
-            ...route.params.newDepense,
-            timestamp: Date.now(),
-            time: "à l'instant",
-          };
-
-          const updatedDepenses = [newDepense, ...currentDepenses];
-          await AsyncStorage.setItem(
-            "depenses",
-            JSON.stringify(updatedDepenses)
-          );
-
-          // Mettre à jour l'affichage avec les temps corrects
-          setDepensesList(
-            updatedDepenses.map((dep) => ({
-              ...dep,
-              time: getElapsedTime(dep.timestamp),
-            }))
-          );
-
-          navigation.setParams({ newDepense: null });
-        } catch (error) {
-          console.error("Erreur lors de l'ajout de la dépense:", error);
-        }
-      }
-    };
-
-    handleNewDepense();
-  }, [route.params?.newDepense]);
-
-  // Gérer le rafraîchissement après modification/suppression
-  useEffect(() => {
-    if (route.params?.refresh) {
-      loadDepenses();
-      navigation.setParams({ refresh: null });
-    }
-  }, [route.params?.refresh]);
-
-  // Fonction de filtrage des dépenses
-  const filterDepenses = (text) => {
-    setSearchText(text);
-    if (text) {
-      const filtered = depensesList.filter((depense) => {
-        const searchTerms = text.toLowerCase();
-        return (
-          depense.title.toLowerCase().includes(searchTerms) ||
-          depense.category.toLowerCase().includes(searchTerms)
-        );
-      });
-      setFilteredDepenses(filtered);
-    } else {
-      setFilteredDepenses(depensesList);
-    }
-  };
-
-  // Mettre à jour les dépenses filtrées quand la liste principale change
-  useEffect(() => {
-    setFilteredDepenses(depensesList);
-  }, [depensesList]);
+  ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <MaterialCommunityIcons
-          name="magnify"
-          size={20}
-          color="#7F8C8D"
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Rechercher par titre ou catégorie"
-          placeholderTextColor="#95A5A6"
-          value={searchText}
-          onChangeText={filterDepenses}
-        />
-      </View>
-      <View style={styles.main}>
+        <View style={styles.searchContainer}>
+          <MaterialCommunityIcons
+            name="magnify"
+            size={20}
+            color="#7F8C8D"
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Rechercher ici"
+            placeholderTextColor="#95A5A6"
+          />
+        </View>
+      <View style={styles.main}>        
         <FlatList
-          data={filteredDepenses}
+          data={depensesData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("DetailDepenses", { depense: item })
-              }
-            >
-              <View style={styles.item}>
-                <View style={styles.itemHeader}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemAmount}>{item.amount}</Text>
-                </View>
-                <Text style={[styles.itemCategory, { flex: 0 }]}>
-                  {item.category}
-                </Text>
-                <Text style={styles.itemTime}>{item.time}</Text>
+            <View style={styles.item}>
+              <View style={styles.itemHeader}>
+                <Text style={styles.itemTitle}>{item.title}</Text>
+                <Text style={styles.itemAmount}>{item.amount}</Text>
               </View>
-            </TouchableOpacity>
+              <Text style={styles.itemCategory}>{item.category}</Text>
+              <Text style={styles.itemTime}>{item.time}</Text>
+            </View>
           )}
         />
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate("AjoutDepenses")}
+          onPress={() => {
+            /* Ajoutez la logique pour ajouter une dépense */
+          }}
         >
           <MaterialCommunityIcons name="plus" size={24} color="#fff" />
         </TouchableOpacity>
@@ -282,10 +158,10 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 5,
     backgroundColor: "#D3D3D3",
+    width: "90",
     padding: 3,
     borderRadius: 5,
     color: "#fff",
-    alignSelf: "flex-start",
   },
   itemTime: {
     fontSize: 12,

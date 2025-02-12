@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  WebView,
 } from "react-native";
 import Footer from "../components/Footer";
 
@@ -20,6 +21,10 @@ const DetailDepenses = ({ navigation, route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [pieceJustificative, setPieceJustificative] = useState(
+    depense?.pieceJustificative || null
+  );
 
   const [typeDepense, setTypeDepense] = useState(
     depense?.category || "SALAIRE"
@@ -111,6 +116,7 @@ const DetailDepenses = ({ navigation, route }) => {
               paymentMethod: moyenPaiement,
               timestamp: Date.now(),
               time: "modifié à l'instant",
+              pieceJustificative: pieceJustificative,
             };
           }
           return dep;
@@ -140,6 +146,10 @@ const DetailDepenses = ({ navigation, route }) => {
         value={value}
       />
     );
+  };
+
+  const pickDocument = () => {
+    // Implementation of pickDocument function
   };
 
   useEffect(() => {
@@ -249,10 +259,41 @@ const DetailDepenses = ({ navigation, route }) => {
         </TouchableOpacity>
 
         <Text style={styles.label}>Pièce justificative</Text>
-        <TouchableOpacity style={styles.importButton}>
-          <MaterialCommunityIcons name="upload" size={20} color="orange" />
-          <Text style={styles.importText}>IMPORTER FICHIER</Text>
-        </TouchableOpacity>
+        <View style={styles.fileContainer}>
+          <View style={styles.importButton}>
+            <View style={styles.fileInfo}>
+              <MaterialCommunityIcons
+                name={pieceJustificative ? "file-check" : "upload"}
+                size={20}
+                color={pieceJustificative ? "green" : "orange"}
+              />
+              <TouchableOpacity
+                style={styles.fileNameContainer}
+                onPress={pickDocument}
+              >
+                <Text
+                  style={[
+                    styles.importText,
+                    pieceJustificative && { color: "green" },
+                  ]}
+                >
+                  {pieceJustificative
+                    ? pieceJustificative.name
+                    : "IMPORTER FICHIER"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {pieceJustificative && (
+              <TouchableOpacity
+                style={styles.viewIconButton}
+                onPress={() => setShowFileModal(true)}
+              >
+                <MaterialCommunityIcons name="eye" size={20} color="blue" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
 
       <Modal
@@ -275,6 +316,39 @@ const DetailDepenses = ({ navigation, route }) => {
             />
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={showFileModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFileModal(false)}
+      >
+        <View style={styles.fileModalContainer}>
+          <View style={styles.fileModalHeader}>
+            <Text style={styles.fileModalTitle}>
+              {pieceJustificative?.name}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowFileModal(false)}
+              style={styles.closeButton}
+            >
+              <MaterialCommunityIcons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+          {pieceJustificative?.type?.startsWith("image/") ? (
+            <Image
+              source={{ uri: pieceJustificative.uri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <WebView
+              source={{ uri: pieceJustificative?.uri }}
+              style={styles.webview}
+            />
+          )}
+        </View>
       </Modal>
 
       <Footer navigation={navigation} />
@@ -319,16 +393,30 @@ const styles = StyleSheet.create({
   importButton: {
     backgroundColor: "#fff",
     borderRadius: 5,
-    padding: 20,
-    alignItems: "center",
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "lightgray",
     flexDirection: "row",
-    justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  fileInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  fileNameContainer: {
+    flex: 1,
+    marginLeft: 10,
   },
   importText: {
     color: "#000",
-    fontWeight: "bolder",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  viewIconButton: {
     marginLeft: 10,
-    fontSize: 18,
+    padding: 5,
   },
   modalOverlay: {
     flex: 1,
@@ -435,6 +523,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
     color: "#2C3E50",
+  },
+  fileContainer: {
+    marginBottom: 25,
+  },
+  viewButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "lightgray",
+    borderRadius: 5,
+  },
+  viewText: {
+    marginLeft: 10,
+    color: "#666",
+  },
+  fileModalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fileModalHeader: {
+    backgroundColor: "#fff",
+    padding: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  fileModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  closeButton: {
+    padding: 5,
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+  },
+  webview: {
+    width: "100%",
+    height: "100%",
   },
 });
 
