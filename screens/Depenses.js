@@ -28,8 +28,8 @@ const Depenses = ({ navigation }) => {
       amount: "2 360F CFA",
       category: "SALAIRE",
       time: "il y a 30 minutes",
-    }
-  };
+    },
+  ];
 
   // Sauvegarder les dépenses
   const saveDepenses = async (newList) => {
