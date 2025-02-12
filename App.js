@@ -52,29 +52,6 @@ export default function App() {
                 <TouchableOpacity
                   style={{
                     width: 100,
-                    marginRight: 5,
-                    borderWidth: 1,
-                    borderColor: "#FF3B30",
-                    padding: 10,
-                    borderRadius: 5,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onPress={() => navigation.goBack()}
-                >
-                  <Text
-                    style={{
-                      color: "#FF3B30",
-                      fontWeight: "500",
-                      textAlign: "center",
-                    }}
-                  >
-                    Supprimer
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{
-                    width: 100,
                     borderWidth: 1,
                     borderColor: "#05365F",
                     backgroundColor: "#05365F",

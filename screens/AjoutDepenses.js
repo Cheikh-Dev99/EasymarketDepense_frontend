@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker as NewPicker } from "@react-native-picker/picker";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -10,6 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import Footer from "../components/Footer";
@@ -20,11 +23,50 @@ const AjoutDepenses = ({ navigation }) => {
   const [motif, setMotif] = useState("");
   const [montant, setMontant] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pieceJustificative, setPieceJustificative] = useState(null);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
 
   const handleSave = async () => {
     if (!motif || !montant) {
       alert("Veuillez remplir tous les champs");
       return;
+    }
+
+    let savedPieceJustificative = null;
+    if (pieceJustificative) {
+      try {
+        // Créer un nom de fichier unique
+        const fileName = `piece_${Date.now()}_${pieceJustificative.name}`;
+        const newUri = FileSystem.documentDirectory + fileName;
+
+        console.log("URI source:", pieceJustificative.uri);
+        console.log("URI destination:", newUri);
+
+        // Copier le fichier
+        await FileSystem.copyAsync({
+          from: pieceJustificative.uri,
+          to: newUri,
+        });
+
+        // Vérifier que le fichier a bien été copié
+        const fileInfo = await FileSystem.getInfoAsync(newUri);
+        console.log("Fichier copié avec succès:", fileInfo);
+
+        savedPieceJustificative = {
+          name: pieceJustificative.name,
+          uri: newUri,
+          type: pieceJustificative.type,
+        };
+
+        console.log(
+          "Pièce justificative sauvegardée:",
+          savedPieceJustificative
+        );
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde du fichier:", error);
+        alert("Erreur lors de la sauvegarde du fichier");
+        return;
+      }
     }
 
     const newDepense = {
@@ -35,9 +77,37 @@ const AjoutDepenses = ({ navigation }) => {
       paymentMethod: moyenPaiement,
       timestamp: Date.now(),
       time: "à l'instant",
+      pieceJustificative: savedPieceJustificative,
     };
 
+    console.log("Nouvelle dépense complète:", newDepense);
     navigation.navigate("Dépenses", { newDepense });
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "application/pdf"],
+      });
+
+      if (result.assets && result.assets.length > 0) {
+        const selectedFile = result.assets[0];
+        console.log("Fichier sélectionné:", selectedFile);
+
+        setPieceJustificative({
+          name: selectedFile.name,
+          uri: selectedFile.uri,
+          type: selectedFile.mimeType,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'importation:", err);
+      alert("Erreur lors de l'importation du fichier");
+    }
+  };
+
+  const removeDocument = () => {
+    setPieceJustificative(null);
   };
 
   // Exposer handleSave au composant parent
@@ -178,10 +248,61 @@ const AjoutDepenses = ({ navigation }) => {
         </Modal>
 
         <Text style={styles.label}>Pièce justificative</Text>
-        <TouchableOpacity style={styles.importButton}>
-          <MaterialCommunityIcons name="upload" size={20} color="orange" />
-          <Text style={styles.importText}>IMPORTER FICHIER</Text>
-        </TouchableOpacity>
+        {console.log("État pieceJustificative:", pieceJustificative)}
+        {!pieceJustificative ? (
+          <TouchableOpacity style={styles.importButton} onPress={pickDocument}>
+            <MaterialCommunityIcons name="upload" size={20} color="orange" />
+            <Text style={styles.importText}>IMPORTER FICHIER</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.filePreviewContainer}>
+            <View style={styles.fileInfo}>
+              <MaterialCommunityIcons
+                name={
+                  pieceJustificative.type?.includes("pdf")
+                    ? "file-pdf-box"
+                    : "file-image"
+                }
+                size={24}
+                color="orange"
+              />
+              <Text style={styles.fileName}>{pieceJustificative.name}</Text>
+            </View>
+            <TouchableOpacity onPress={removeDocument}>
+              <MaterialCommunityIcons name="close" size={24} color="red" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {pieceJustificative && !pieceJustificative.type?.includes("pdf") && (
+          <>
+            <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+              <Image
+                source={{ uri: pieceJustificative.uri }}
+                style={styles.imagePreview}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <Modal
+              visible={imageModalVisible}
+              transparent={true}
+              onRequestClose={() => setImageModalVisible(false)}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => setImageModalVisible(false)}
+              >
+                <View style={styles.modalImageContainer}>
+                  <Image
+                    source={{ uri: pieceJustificative.uri }}
+                    style={styles.fullScreenImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          </>
+        )}
       </View>
       <Footer navigation={navigation} />
     </View>
@@ -317,6 +438,43 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     resizeMode: "contain",
+  },
+  filePreviewContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  fileInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  fileName: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#2C3E50",
+    flex: 1,
+  },
+  imagePreview: {
+    width: "100%",
+    height: 120,
+    marginTop: 10,
+    marginBottom: 20,
+    borderRadius: 5,
+  },
+  modalImageContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreenImage: {
+    width: "100%",
+    height: "100%",
   },
 });
 

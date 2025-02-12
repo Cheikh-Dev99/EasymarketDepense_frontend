@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 
@@ -80,24 +81,29 @@ const Depenses = ({ navigation, route }) => {
     const handleNewDepense = async () => {
       if (route.params?.newDepense) {
         try {
+          console.log("Réception nouvelle dépense:", route.params.newDepense);
+
           const savedDepenses = await AsyncStorage.getItem("depenses");
           const currentDepenses = savedDepenses
             ? JSON.parse(savedDepenses)
             : [];
 
-          const newDepense = {
-            ...route.params.newDepense,
-            timestamp: Date.now(),
-            time: "à l'instant",
-          };
+          const updatedDepenses = [route.params.newDepense, ...currentDepenses];
 
-          const updatedDepenses = [newDepense, ...currentDepenses];
+          // Vérifier que la pièce justificative est bien présente
+          if (route.params.newDepense.pieceJustificative) {
+            const fileInfo = await FileSystem.getInfoAsync(
+              route.params.newDepense.pieceJustificative.uri
+            );
+            console.log("Vérification fichier dans Depenses.js:", fileInfo);
+          }
+
           await AsyncStorage.setItem(
             "depenses",
             JSON.stringify(updatedDepenses)
           );
+          console.log("Dépense sauvegardée avec succès");
 
-          // Mettre à jour l'affichage avec les temps corrects
           setDepensesList(
             updatedDepenses.map((dep) => ({
               ...dep,
