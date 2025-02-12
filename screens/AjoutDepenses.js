@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker as NewPicker } from "@react-native-picker/picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -25,6 +26,7 @@ const AjoutDepenses = ({ navigation }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pieceJustificative, setPieceJustificative] = useState(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [pdfModalVisible, setPdfModalVisible] = useState(false);
 
   const handleSave = async () => {
     if (!motif || !montant) {
@@ -165,6 +167,20 @@ const AjoutDepenses = ({ navigation }) => {
 
   const selectedMethod = paymentMethods.find((p) => p.value === moyenPaiement);
 
+  const viewPDF = async (uri) => {
+    try {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(uri);
+      } else {
+        alert("Le partage n'est pas disponible sur cet appareil");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ouverture du fichier:", error);
+      alert("Impossible d'ouvrir le fichier");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.main}>
@@ -248,59 +264,74 @@ const AjoutDepenses = ({ navigation }) => {
         </Modal>
 
         <Text style={styles.label}>Pièce justificative</Text>
-        {console.log("État pieceJustificative:", pieceJustificative)}
         {!pieceJustificative ? (
           <TouchableOpacity style={styles.importButton} onPress={pickDocument}>
             <MaterialCommunityIcons name="upload" size={20} color="orange" />
             <Text style={styles.importText}>IMPORTER FICHIER</Text>
           </TouchableOpacity>
         ) : (
-          <View style={styles.filePreviewContainer}>
-            <View style={styles.fileInfo}>
-              <MaterialCommunityIcons
-                name={
-                  pieceJustificative.type?.includes("pdf")
-                    ? "file-pdf-box"
-                    : "file-image"
-                }
-                size={24}
-                color="orange"
-              />
-              <Text style={styles.fileName}>{pieceJustificative.name}</Text>
-            </View>
-            <TouchableOpacity onPress={removeDocument}>
-              <MaterialCommunityIcons name="close" size={24} color="red" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {pieceJustificative && !pieceJustificative.type?.includes("pdf") && (
           <>
-            <TouchableOpacity onPress={() => setImageModalVisible(true)}>
-              <Image
-                source={{ uri: pieceJustificative.uri }}
-                style={styles.imagePreview}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            <View style={styles.filePreviewContainer}>
+              <View style={styles.fileInfo}>
+                <MaterialCommunityIcons
+                  name={
+                    pieceJustificative.type?.includes("pdf")
+                      ? "file-pdf-box"
+                      : "file-image"
+                  }
+                  size={24}
+                  color="orange"
+                />
+                <Text style={styles.fileName}>{pieceJustificative.name}</Text>
+              </View>
+              <TouchableOpacity onPress={removeDocument}>
+                <MaterialCommunityIcons name="close" size={24} color="red" />
+              </TouchableOpacity>
+            </View>
 
-            <Modal
-              visible={imageModalVisible}
-              transparent={true}
-              onRequestClose={() => setImageModalVisible(false)}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => setImageModalVisible(false)}
+            {pieceJustificative && pieceJustificative.type?.includes("pdf") ? (
+              <TouchableOpacity
+                style={styles.pdfPreviewContainer}
+                onPress={() => viewPDF(pieceJustificative.uri)}
               >
-                <View style={styles.modalImageContainer}>
+                <MaterialCommunityIcons
+                  name="file-pdf-box"
+                  size={40}
+                  color="red"
+                />
+                <Text style={styles.pdfPreviewText}>
+                  Appuyer pour voir le PDF
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity onPress={() => setImageModalVisible(true)}>
                   <Image
                     source={{ uri: pieceJustificative.uri }}
-                    style={styles.fullScreenImage}
+                    style={styles.imagePreview}
                     resizeMode="contain"
                   />
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
+                </TouchableOpacity>
+
+                <Modal
+                  visible={imageModalVisible}
+                  transparent={true}
+                  onRequestClose={() => setImageModalVisible(false)}
+                >
+                  <TouchableWithoutFeedback
+                    onPress={() => setImageModalVisible(false)}
+                  >
+                    <View style={styles.modalImageContainer}>
+                      <Image
+                        source={{ uri: pieceJustificative.uri }}
+                        style={styles.fullScreenImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </Modal>
+              </>
+            )}
           </>
         )}
       </View>
@@ -473,6 +504,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   fullScreenImage: {
+    width: "100%",
+    height: "100%",
+  },
+  pdfPreviewContainer: {
+    backgroundColor: "#f8f9fa",
+    padding: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#dee2e6",
+  },
+  pdfPreviewText: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  modalHeader: {
+    padding: 15,
+    backgroundColor: "#333",
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+  },
+  pdf: {
+    flex: 1,
     width: "100%",
     height: "100%",
   },
