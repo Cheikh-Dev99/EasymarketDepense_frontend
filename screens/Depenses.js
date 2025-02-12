@@ -41,7 +41,11 @@ const Depenses = ({ navigation, route }) => {
       const savedDepenses = await AsyncStorage.getItem("depenses");
       if (savedDepenses !== null) {
         const parsedDepenses = JSON.parse(savedDepenses);
-        setDepensesList(parsedDepenses);
+        const updatedDepenses = parsedDepenses.map((dep) => ({
+          ...dep,
+          time: getElapsedTime(dep.timestamp),
+        }));
+        setDepensesList(updatedDepenses);
       }
     } catch (error) {
       console.error("Erreur lors du chargement des dépenses:", error);
@@ -57,16 +61,16 @@ const Depenses = ({ navigation, route }) => {
     }
   };
 
-  // Mettre à jour les temps affichés
+  // Mettre à jour les temps affichés périodiquement
   useEffect(() => {
     const interval = setInterval(() => {
       setDepensesList((currentList) =>
-        currentList.map((depense) => ({
-          ...depense,
-          time: getElapsedTime(depense.timestamp),
+        currentList.map((dep) => ({
+          ...dep,
+          time: getElapsedTime(dep.timestamp),
         }))
       );
-    }, 60000);
+    }, 60000); // Mise à jour toutes les minutes
 
     return () => clearInterval(interval);
   }, []);
@@ -76,27 +80,31 @@ const Depenses = ({ navigation, route }) => {
     const handleNewDepense = async () => {
       if (route.params?.newDepense) {
         try {
-          // Charger les dépenses existantes
           const savedDepenses = await AsyncStorage.getItem("depenses");
           const currentDepenses = savedDepenses
             ? JSON.parse(savedDepenses)
             : [];
 
-          // Créer la nouvelle dépense avec timestamp
           const newDepense = {
             ...route.params.newDepense,
             timestamp: Date.now(),
             time: "à l'instant",
           };
 
-          // Combiner avec les dépenses existantes
           const updatedDepenses = [newDepense, ...currentDepenses];
+          await AsyncStorage.setItem(
+            "depenses",
+            JSON.stringify(updatedDepenses)
+          );
 
-          // Sauvegarder et mettre à jour l'état
-          await saveDepenses(updatedDepenses);
-          setDepensesList(updatedDepenses);
+          // Mettre à jour l'affichage avec les temps corrects
+          setDepensesList(
+            updatedDepenses.map((dep) => ({
+              ...dep,
+              time: getElapsedTime(dep.timestamp),
+            }))
+          );
 
-          // Réinitialiser les paramètres
           navigation.setParams({ newDepense: null });
         } catch (error) {
           console.error("Erreur lors de l'ajout de la dépense:", error);

@@ -2,8 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker as NewPicker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
-import Footer from "../components/Footer";
 import {
+  FlatList,
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -12,20 +13,70 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Footer from "../components/Footer";
 
 const DetailDepenses = ({ navigation, route }) => {
   const depense = route.params?.depense;
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const [typeDepense, setTypeDepense] = useState(
     depense?.category || "SALAIRE"
   );
-  const [moyenPaiement, setMoyenPaiement] = useState("WAVE");
+  const [moyenPaiement, setMoyenPaiement] = useState(
+    depense?.paymentMethod || "WAVE"
+  );
   const [motif, setMotif] = useState(depense?.title || "");
   const [montant, setMontant] = useState(
     depense?.amount?.replace("F CFA", "") || ""
   );
+
+  const paymentMethods = [
+    {
+      id: "1",
+      label: "WAVE",
+      value: "WAVE",
+      image: require("../assets/wave.png"),
+    },
+    {
+      id: "2",
+      label: "ORANGE MONEY",
+      value: "ORANGE MONEY",
+      image: require("../assets/Orange.png"),
+    },
+    {
+      id: "3",
+      label: "FREE MONEY",
+      value: "FREE MONEY",
+      image: require("../assets/free.png"),
+    },
+    {
+      id: "4",
+      label: "CASH",
+      value: "CASH",
+      icon: "cash",
+    },
+  ];
+
+  const renderPaymentMethod = ({ item }) => (
+    <TouchableOpacity
+      style={styles.paymentOption}
+      onPress={() => {
+        setMoyenPaiement(item.value);
+        setShowPaymentModal(false);
+      }}
+    >
+      {item.image ? (
+        <Image source={item.image} style={styles.paymentLogo} />
+      ) : (
+        <MaterialCommunityIcons name={item.icon} size={24} color="#666" />
+      )}
+      <Text style={styles.paymentOptionText}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+
+  const selectedMethod = paymentMethods.find((p) => p.value === moyenPaiement);
 
   const showConfirmationModal = (type) => {
     setModalType(type);
@@ -57,8 +108,9 @@ const DetailDepenses = ({ navigation, route }) => {
               title: motif,
               amount: `${montant}F CFA`,
               category: typeDepense,
+              paymentMethod: moyenPaiement,
               timestamp: Date.now(),
-              time: "à l'instant",
+              time: "modifié à l'instant",
             };
           }
           return dep;
@@ -74,6 +126,20 @@ const DetailDepenses = ({ navigation, route }) => {
     } catch (error) {
       console.error("Erreur:", error);
     }
+  };
+
+  const renderPickerItem = (label, value, iconName) => {
+    return (
+      <NewPicker.Item
+        label={
+          <View style={styles.pickerItemContainer}>
+            <MaterialCommunityIcons name={iconName} size={24} color="#666" />
+            <Text style={styles.pickerItemText}>{label}</Text>
+          </View>
+        }
+        value={value}
+      />
+    );
   };
 
   useEffect(() => {
@@ -163,14 +229,24 @@ const DetailDepenses = ({ navigation, route }) => {
         </NewPicker>
 
         <Text style={styles.label}>Moyen de paiement utilisé</Text>
-        <NewPicker
-          selectedValue={moyenPaiement}
-          style={styles.picker}
-          onValueChange={(itemValue) => setMoyenPaiement(itemValue)}
+        <TouchableOpacity
+          style={styles.paymentSelector}
+          onPress={() => setShowPaymentModal(true)}
         >
-          <NewPicker.Item label="WAVE" value="WAVE" />
-          <NewPicker.Item label="CASH" value="CASH" />
-        </NewPicker>
+          <View style={styles.selectedPayment}>
+            {selectedMethod?.image ? (
+              <Image source={selectedMethod.image} style={styles.paymentLogo} />
+            ) : (
+              <MaterialCommunityIcons
+                name={selectedMethod?.icon || "cash"}
+                size={24}
+                color="#666"
+              />
+            )}
+            <Text style={styles.selectedPaymentText}>{moyenPaiement}</Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-down" size={24} color="#666" />
+        </TouchableOpacity>
 
         <Text style={styles.label}>Pièce justificative</Text>
         <TouchableOpacity style={styles.importButton}>
@@ -178,6 +254,29 @@ const DetailDepenses = ({ navigation, route }) => {
           <Text style={styles.importText}>IMPORTER FICHIER</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showPaymentModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPaymentModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choisir le moyen de paiement</Text>
+            <FlatList
+              data={paymentMethods}
+              renderItem={renderPaymentMethod}
+              keyExtractor={(item) => item.id}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <Footer navigation={navigation} />
     </View>
   );
@@ -281,6 +380,61 @@ const styles = StyleSheet.create({
   },
   modalButtonTextConfirm: {
     color: "#fff",
+  },
+  pickerItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 5,
+  },
+  pickerItemText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "#2C3E50",
+  },
+  paymentSelector: {
+    height: 60,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: "lightgray",
+    backgroundColor: "#fff",
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 25,
+  },
+  selectedPayment: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  selectedPaymentText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "#2C3E50",
+  },
+  paymentLogo: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  paymentOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  paymentOptionText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "#2C3E50",
   },
 });
 

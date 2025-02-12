@@ -1,10 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
-import AjoutDepenses from "./screens/AjoutDepenses";
-import Depenses from "./screens/Depenses";
-import DetailDepenses from "./screens/DetailDepenses";
-import Modules from "./screens/Modules";
 import {
   Picker,
   StyleSheet,
@@ -13,6 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AjoutDepenses from "./screens/AjoutDepenses";
+import Depenses from "./screens/Depenses";
+import DetailDepenses from "./screens/DetailDepenses";
+import Modules from "./screens/Modules";
 
 const Stack = createStackNavigator();
 
