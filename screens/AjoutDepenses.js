@@ -254,7 +254,7 @@ const AjoutDepenses = ({ navigation }) => {
               onChangeText={setTypeDepense}
               placeholder="Précisez le type de dépense"
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => {
                 setIsAutreSelected(false);
@@ -600,12 +600,12 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   typeInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 25,
   },
   cancelButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     padding: 5,
   },

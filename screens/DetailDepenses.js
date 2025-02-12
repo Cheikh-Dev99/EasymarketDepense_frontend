@@ -241,7 +241,14 @@ const DetailDepenses = ({ navigation, route }) => {
 
   useEffect(() => {
     if (depense) {
-      const isCustomType = !["SALAIRE", "EAU", "ELECTRICITÉ", "LOYER", "TRANSPORT", "APPROVISIONNEMENT PRODUIT"].includes(depense.category);
+      const isCustomType = ![
+        "SALAIRE",
+        "EAU",
+        "ELECTRICITÉ",
+        "LOYER",
+        "TRANSPORT",
+        "APPROVISIONNEMENT PRODUIT",
+      ].includes(depense.category);
       if (isCustomType) {
         setIsAutreSelected(true);
         setTypeDepense(depense.category);
@@ -360,7 +367,7 @@ const DetailDepenses = ({ navigation, route }) => {
               onChangeText={setTypeDepense}
               placeholder="Précisez le type de dépense"
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => {
                 setIsAutreSelected(false);
@@ -719,12 +726,12 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   typeInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 25,
   },
   cancelButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     padding: 5,
   },
