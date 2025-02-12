@@ -169,28 +169,40 @@ const Depenses = ({ navigation, route }) => {
         />
       </View>
       <View style={styles.main}>
-        <FlatList
-          data={filteredDepenses}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("DetailDepenses", { depense: item })
-              }
-            >
-              <View style={styles.item}>
-                <View style={styles.itemHeader}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemAmount}>{item.amount}</Text>
+        {depensesList.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons name="receipt" size={50} color="#ccc" />
+            <Text style={styles.emptyText}>
+              Aucune dépense enregistrée pour le moment.
+            </Text>
+            <Text style={styles.emptySubText}>
+              Cliquez sur le + pour ajouter une nouvelle dépense.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredDepenses}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("DetailDepenses", { depense: item })
+                }
+              >
+                <View style={styles.item}>
+                  <View style={styles.itemHeader}>
+                    <Text style={styles.itemTitle}>{item.title}</Text>
+                    <Text style={styles.itemAmount}>{item.amount}</Text>
+                  </View>
+                  <Text style={[styles.itemCategory, { flex: 0 }]}>
+                    {item.category}
+                  </Text>
+                  <Text style={styles.itemTime}>{item.time}</Text>
                 </View>
-                <Text style={[styles.itemCategory, { flex: 0 }]}>
-                  {item.category}
-                </Text>
-                <Text style={styles.itemTime}>{item.time}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
+              </TouchableOpacity>
+            )}
+          />
+        )}
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate("AjoutDepenses")}
@@ -306,6 +318,25 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 15,
     elevation: 5,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 20,
+    fontWeight: "bold",
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+    marginTop: 10,
   },
 });
 

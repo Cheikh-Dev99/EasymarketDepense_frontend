@@ -39,6 +39,11 @@ const DetailDepenses = ({ navigation, route }) => {
     depense?.amount?.replace("F CFA", "") || ""
   );
 
+  const [autreType, setAutreType] = useState("");
+  const [showAutreInput, setShowAutreInput] = useState(false);
+
+  const [isAutreSelected, setIsAutreSelected] = useState(false);
+
   const paymentMethods = [
     {
       id: "1",
@@ -95,6 +100,12 @@ const DetailDepenses = ({ navigation, route }) => {
       alert("Veuillez remplir tous les champs");
       return;
     }
+
+    if (typeDepense === "AUTRE" && !autreType) {
+      alert("Veuillez préciser le type de dépense");
+      return;
+    }
+
     showConfirmationModal("update");
   };
 
@@ -114,7 +125,7 @@ const DetailDepenses = ({ navigation, route }) => {
               ...dep,
               title: motif,
               amount: `${montant}F CFA`,
-              category: typeDepense,
+              category: typeDepense === "AUTRE" ? autreType : typeDepense,
               paymentMethod: moyenPaiement,
               pieceJustificative: pieceJustificative,
               timestamp: Date.now(),
@@ -218,6 +229,38 @@ const DetailDepenses = ({ navigation, route }) => {
     loadPieceJustificative();
   }, [depense]);
 
+  useEffect(() => {
+    if (typeDepense === "AUTRE") {
+      setShowAutreInput(true);
+      setAutreType(depense?.category || "");
+    } else {
+      setShowAutreInput(false);
+      setAutreType("");
+    }
+  }, [typeDepense]);
+
+  useEffect(() => {
+    if (depense) {
+      const isCustomType = !["SALAIRE", "EAU", "ELECTRICITÉ", "LOYER", "TRANSPORT", "APPROVISIONNEMENT PRODUIT"].includes(depense.category);
+      if (isCustomType) {
+        setIsAutreSelected(true);
+        setTypeDepense(depense.category);
+      } else {
+        setTypeDepense(depense.category);
+      }
+    }
+  }, [depense]);
+
+  const handleTypeChange = (value) => {
+    if (value === "AUTRE") {
+      setIsAutreSelected(true);
+      setTypeDepense("");
+    } else {
+      setIsAutreSelected(false);
+      setTypeDepense(value);
+    }
+  };
+
   const viewPDF = async (uri) => {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
@@ -292,22 +335,42 @@ const DetailDepenses = ({ navigation, route }) => {
         />
 
         <Text style={styles.label}>Type de dépense</Text>
-        <NewPicker
-          selectedValue={typeDepense}
-          style={styles.picker}
-          onValueChange={(itemValue) => setTypeDepense(itemValue)}
-        >
-          <NewPicker.Item label="SALAIRE" value="SALAIRE" />
-          <NewPicker.Item label="EAU" value="EAU" />
-          <NewPicker.Item label="ELECTRICITÉ" value="ELECTRICITÉ" />
-          <NewPicker.Item label="LOYER" value="LOYER" />
-          <NewPicker.Item label="TRANSPORT" value="TRANSPORT" />
-          <NewPicker.Item
-            label="APPROVISIONNEMENT PRODUIT"
-            value="APPROVISIONNEMENT PRODUIT"
-          />
-          <NewPicker.Item label="AUTRE" value="AUTRE" />
-        </NewPicker>
+        {!isAutreSelected ? (
+          <NewPicker
+            selectedValue={typeDepense}
+            style={styles.picker}
+            onValueChange={handleTypeChange}
+          >
+            <NewPicker.Item label="SALAIRE" value="SALAIRE" />
+            <NewPicker.Item label="EAU" value="EAU" />
+            <NewPicker.Item label="ELECTRICITÉ" value="ELECTRICITÉ" />
+            <NewPicker.Item label="LOYER" value="LOYER" />
+            <NewPicker.Item label="TRANSPORT" value="TRANSPORT" />
+            <NewPicker.Item
+              label="APPROVISIONNEMENT PRODUIT"
+              value="APPROVISIONNEMENT PRODUIT"
+            />
+            <NewPicker.Item label="AUTRE" value="AUTRE" />
+          </NewPicker>
+        ) : (
+          <View style={styles.typeInputContainer}>
+            <TextInput
+              style={styles.input}
+              value={typeDepense}
+              onChangeText={setTypeDepense}
+              placeholder="Précisez le type de dépense"
+            />
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => {
+                setIsAutreSelected(false);
+                setTypeDepense("SALAIRE");
+              }}
+            >
+              <MaterialCommunityIcons name="close" size={24} color="red" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Text style={styles.label}>Moyen de paiement utilisé</Text>
         <TouchableOpacity
@@ -650,6 +713,20 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+  },
+  autreInputContainer: {
+    marginTop: -15,
+    marginBottom: 25,
+  },
+  typeInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  cancelButton: {
+    position: 'absolute',
+    right: 10,
+    padding: 5,
   },
 });
 
