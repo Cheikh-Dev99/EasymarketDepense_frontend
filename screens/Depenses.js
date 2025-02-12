@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import React, { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 
 import {
@@ -27,7 +29,105 @@ const Depenses = ({ navigation }) => {
       category: "SALAIRE",
       time: "il y a 30 minutes",
     }
-  ];
+  };
+
+  // Sauvegarder les dépenses
+  const saveDepenses = async (newList) => {
+    try {
+      await AsyncStorage.setItem("depenses", JSON.stringify(newList));
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde des dépenses:", error);
+    }
+  };
+
+  // Mettre à jour les temps affichés périodiquement
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDepensesList((currentList) =>
+        currentList.map((dep) => ({
+          ...dep,
+          time: getElapsedTime(dep.timestamp),
+        }))
+      );
+    }, 60000); // Mise à jour toutes les minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Gérer l'ajout d'une nouvelle dépense
+  useEffect(() => {
+    const handleNewDepense = async () => {
+      if (route.params?.newDepense) {
+        try {
+          console.log("Réception nouvelle dépense:", route.params.newDepense);
+
+          const savedDepenses = await AsyncStorage.getItem("depenses");
+          const currentDepenses = savedDepenses
+            ? JSON.parse(savedDepenses)
+            : [];
+
+          const updatedDepenses = [route.params.newDepense, ...currentDepenses];
+
+          // Vérifier que la pièce justificative est bien présente
+          if (route.params.newDepense.pieceJustificative) {
+            const fileInfo = await FileSystem.getInfoAsync(
+              route.params.newDepense.pieceJustificative.uri
+            );
+            console.log("Vérification fichier dans Depenses.js:", fileInfo);
+          }
+
+          await AsyncStorage.setItem(
+            "depenses",
+            JSON.stringify(updatedDepenses)
+          );
+          console.log("Dépense sauvegardée avec succès");
+
+          setDepensesList(
+            updatedDepenses.map((dep) => ({
+              ...dep,
+              time: getElapsedTime(dep.timestamp),
+            }))
+          );
+
+          navigation.setParams({ newDepense: null });
+        } catch (error) {
+          console.error("Erreur lors de l'ajout de la dépense:", error);
+        }
+      }
+    };
+
+    handleNewDepense();
+  }, [route.params?.newDepense]);
+
+  // Gérer le rafraîchissement après modification/suppression
+  useEffect(() => {
+    if (route.params?.refresh) {
+      loadDepenses();
+      navigation.setParams({ refresh: null });
+    }
+  }, [route.params?.refresh]);
+
+  // Fonction de filtrage des dépenses
+  const filterDepenses = (text) => {
+    setSearchText(text);
+    if (text) {
+      const filtered = depensesList.filter((depense) => {
+        const searchTerms = text.toLowerCase();
+        return (
+          depense.title.toLowerCase().includes(searchTerms) ||
+          depense.category.toLowerCase().includes(searchTerms)
+        );
+      });
+      setFilteredDepenses(filtered);
+    } else {
+      setFilteredDepenses(depensesList);
+    }
+  };
+
+  // Mettre à jour les dépenses filtrées quand la liste principale change
+  useEffect(() => {
+    setFilteredDepenses(depensesList);
+  }, [depensesList]);
 
   return (
     <View style={styles.container}>

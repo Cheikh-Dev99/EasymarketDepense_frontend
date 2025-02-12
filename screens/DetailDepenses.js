@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker as NewPicker } from "@react-native-picker/picker";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -11,6 +13,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
   WebView,
 } from "react-native";
@@ -18,13 +21,12 @@ import Footer from "../components/Footer";
 
 const DetailDepenses = ({ navigation, route }) => {
   const depense = route.params?.depense;
+  console.log("Dépense reçue dans DetailDepenses:", depense);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showFileModal, setShowFileModal] = useState(false);
-  const [pieceJustificative, setPieceJustificative] = useState(
-    depense?.pieceJustificative || null
-  );
+  const [pieceJustificative, setPieceJustificative] = useState(null);
 
   const [typeDepense, setTypeDepense] = useState(
     depense?.category || "SALAIRE"
@@ -114,6 +116,7 @@ const DetailDepenses = ({ navigation, route }) => {
               amount: `${montant}F CFA`,
               category: typeDepense,
               paymentMethod: moyenPaiement,
+              pieceJustificative: pieceJustificative,
               timestamp: Date.now(),
               time: "modifié à l'instant",
               pieceJustificative: pieceJustificative,
@@ -148,9 +151,34 @@ const DetailDepenses = ({ navigation, route }) => {
     );
   };
 
-  const pickDocument = () => {
-    // Implementation of pickDocument function
+  const removeDocument = () => {
+    console.log("Suppression du fichier actuel");
+    setPieceJustificative(null);
   };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "application/pdf"],
+      });
+
+      if (result.assets && result.assets.length > 0) {
+        const selectedFile = result.assets[0];
+        console.log("Nouveau fichier sélectionné:", selectedFile);
+
+        setPieceJustificative({
+          name: selectedFile.name,
+          uri: selectedFile.uri,
+          type: selectedFile.mimeType,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'importation:", err);
+      alert("Erreur lors de l'importation du fichier");
+    }
+  };
+
+  const [imageModalVisible, setImageModalVisible] = useState(false);
 
   useEffect(() => {
     navigation.setParams({
@@ -160,6 +188,35 @@ const DetailDepenses = ({ navigation, route }) => {
       },
     });
   }, [motif, montant, typeDepense]);
+
+  useEffect(() => {
+    const loadPieceJustificative = async () => {
+      console.log("État actuel de la pièce justificative:", pieceJustificative);
+
+      if (depense?.pieceJustificative && !pieceJustificative) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(
+            depense.pieceJustificative.uri
+          );
+          console.log("Info du fichier:", fileInfo);
+
+          if (fileInfo.exists) {
+            console.log("Le fichier existe, chargement...");
+            setPieceJustificative(depense.pieceJustificative);
+          } else {
+            console.log(
+              "Le fichier n'existe pas à l'emplacement:",
+              depense.pieceJustificative.uri
+            );
+          }
+        } catch (error) {
+          console.error("Erreur lors de la vérification du fichier:", error);
+        }
+      }
+    };
+
+    loadPieceJustificative();
+  }, [depense]);
 
   return (
     <View style={styles.container}>
@@ -259,41 +316,63 @@ const DetailDepenses = ({ navigation, route }) => {
         </TouchableOpacity>
 
         <Text style={styles.label}>Pièce justificative</Text>
-        <View style={styles.fileContainer}>
-          <View style={styles.importButton}>
-            <View style={styles.fileInfo}>
-              <MaterialCommunityIcons
-                name={pieceJustificative ? "file-check" : "upload"}
-                size={20}
-                color={pieceJustificative ? "green" : "orange"}
-              />
-              <TouchableOpacity
-                style={styles.fileNameContainer}
-                onPress={pickDocument}
-              >
-                <Text
-                  style={[
-                    styles.importText,
-                    pieceJustificative && { color: "green" },
-                  ]}
-                >
-                  {pieceJustificative
-                    ? pieceJustificative.name
-                    : "IMPORTER FICHIER"}
-                </Text>
+        {!pieceJustificative ? (
+          <TouchableOpacity style={styles.importButton} onPress={pickDocument}>
+            <MaterialCommunityIcons name="upload" size={20} color="orange" />
+            <Text style={styles.importText}>IMPORTER FICHIER</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <View style={styles.filePreviewContainer}>
+              <View style={styles.fileInfo}>
+                <MaterialCommunityIcons
+                  name={
+                    pieceJustificative.type?.includes("pdf")
+                      ? "file-pdf-box"
+                      : "file-image"
+                  }
+                  size={24}
+                  color="orange"
+                />
+                <Text style={styles.fileName}>{pieceJustificative.name}</Text>
+              </View>
+              <TouchableOpacity onPress={removeDocument}>
+                <MaterialCommunityIcons name="close" size={24} color="red" />
               </TouchableOpacity>
             </View>
 
-            {pieceJustificative && (
-              <TouchableOpacity
-                style={styles.viewIconButton}
-                onPress={() => setShowFileModal(true)}
-              >
-                <MaterialCommunityIcons name="eye" size={20} color="blue" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+            {pieceJustificative &&
+              !pieceJustificative.type?.includes("pdf") && (
+                <>
+                  <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+                    <Image
+                      source={{ uri: pieceJustificative.uri }}
+                      style={styles.imagePreview}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+
+                  <Modal
+                    visible={imageModalVisible}
+                    transparent={true}
+                    onRequestClose={() => setImageModalVisible(false)}
+                  >
+                    <TouchableWithoutFeedback
+                      onPress={() => setImageModalVisible(false)}
+                    >
+                      <View style={styles.modalImageContainer}>
+                        <Image
+                          source={{ uri: pieceJustificative.uri }}
+                          style={styles.fullScreenImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </Modal>
+                </>
+              )}
+          </>
+        )}
       </View>
 
       <Modal
@@ -524,48 +603,43 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#2C3E50",
   },
-  fileContainer: {
-    marginBottom: 25,
-  },
-  viewButton: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "lightgray",
-    borderRadius: 5,
-  },
-  viewText: {
-    marginLeft: 10,
-    color: "#666",
-  },
-  fileModalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fileModalHeader: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+  filePreviewContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 20,
   },
-  fileModalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  fileInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
-  closeButton: {
-    padding: 5,
+  fileName: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#2C3E50",
+    flex: 1,
   },
-  previewImage: {
+  imagePreview: {
+    width: "100%",
+    height: 130,
+    marginTop: 0,
+    marginBottom: 20,
+    borderRadius: 5,
+  },
+  modalImageContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreenImage: {
     width: "100%",
     height: "100%",
-  },
-  webview: {
-    width: "100%",
-    height: "100%",
+    resizeMode: "contain",
   },
 });
 
