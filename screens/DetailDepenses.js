@@ -123,14 +123,9 @@ const DetailDepenses = ({ navigation, route }) => {
 
     try {
       const formData = new FormData();
-
-      const currentPaymentMethod = paymentMethodRef.current;
-
       formData.append("title", motif.trim());
       formData.append("amount", montant.replace(/\s/g, ""));
-      formData.append("payment_method", currentPaymentMethod);
-
-      console.log("Moyen de paiement avant envoi:", currentPaymentMethod);
+      formData.append("payment_method", paymentMethodRef.current);
 
       if (isAutreSelected) {
         formData.append("category", "AUTRE");
@@ -140,15 +135,27 @@ const DetailDepenses = ({ navigation, route }) => {
       }
 
       if (pieceJustificative) {
-        formData.append("piece_justificative", {
-          uri: pieceJustificative.uri,
-          type: pieceJustificative.type || "application/octet-stream",
-          name: pieceJustificative.name,
-        });
+        if (pieceJustificative.uri.startsWith("file://")) {
+          console.log("Envoi du nouveau fichier:", pieceJustificative);
+          formData.append("piece_justificative", {
+            uri: pieceJustificative.uri,
+            type:
+              pieceJustificative.mimeType ||
+              pieceJustificative.type ||
+              "application/octet-stream",
+            name: pieceJustificative.name,
+          });
+        } else if (pieceJustificative.uri.startsWith("http")) {
+          console.log("Conservation du fichier existant");
+        }
+      } else {
+        console.log("Suppression du fichier");
+        formData.append("piece_justificative", "");
       }
 
+      console.log("FormData avant envoi:");
       for (let [key, value] of formData._parts) {
-        console.log(`FormData - ${key}:`, value);
+        console.log(`${key}:`, value);
       }
 
       const response = await fetch(
@@ -158,6 +165,7 @@ const DetailDepenses = ({ navigation, route }) => {
           body: formData,
           headers: {
             Accept: "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -170,6 +178,21 @@ const DetailDepenses = ({ navigation, route }) => {
 
       const data = await response.json();
       console.log("Mise à jour réussie:", data);
+
+      if (data.piece_justificative) {
+        const fileName = data.piece_justificative.split("/").pop();
+        const fileType = fileName.toLowerCase().endsWith(".pdf")
+          ? "application/pdf"
+          : "image/jpeg";
+        setPieceJustificative({
+          uri: data.piece_justificative,
+          type: fileType,
+          name: fileName,
+        });
+      } else {
+        setPieceJustificative(null);
+      }
+
       navigation.navigate("Dépenses");
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
@@ -242,6 +265,7 @@ const DetailDepenses = ({ navigation, route }) => {
           name: selectedFile.name,
           uri: selectedFile.uri,
           type: selectedFile.mimeType,
+          mimeType: selectedFile.mimeType,
         });
       }
     } catch (err) {
@@ -265,25 +289,31 @@ const DetailDepenses = ({ navigation, route }) => {
   useEffect(() => {
     const loadPieceJustificative = async () => {
       console.log("État actuel de la pièce justificative:", pieceJustificative);
+      console.log(
+        "URL de la pièce justificative:",
+        depense?.piece_justificative
+      );
 
-      if (depense?.pieceJustificative && !pieceJustificative) {
+      if (depense?.piece_justificative && !pieceJustificative) {
         try {
-          const fileInfo = await FileSystem.getInfoAsync(
-            depense.pieceJustificative.uri
-          );
-          console.log("Info du fichier:", fileInfo);
+          const fileName = depense.piece_justificative.split("/").pop();
+          const fileType = fileName.toLowerCase().endsWith(".pdf")
+            ? "application/pdf"
+            : "image/jpeg";
 
-          if (fileInfo.exists) {
-            console.log("Le fichier existe, chargement...");
-            setPieceJustificative(depense.pieceJustificative);
-          } else {
-            console.log(
-              "Le fichier n'existe pas à l'emplacement:",
-              depense.pieceJustificative.uri
-            );
-          }
+          setPieceJustificative({
+            uri: depense.piece_justificative,
+            type: fileType,
+            name: fileName,
+          });
+
+          console.log("Pièce justificative chargée:", {
+            uri: depense.piece_justificative,
+            type: fileType,
+            name: fileName,
+          });
         } catch (error) {
-          console.error("Erreur lors de la vérification du fichier:", error);
+          console.error("Erreur lors du chargement du fichier:", error);
         }
       }
     };
