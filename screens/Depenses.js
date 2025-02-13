@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Footer from "../components/Footer";
+import { fetchDepenses } from "../src/redux/features/depenses/depensesSlice";
 
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -13,14 +14,19 @@ import {
   View,
 } from "react-native";
 
-const Depenses = ({ navigation, route }) => {
-  const [depensesList, setDepensesList] = useState([]);
+const Depenses = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const {
+    items: depensesList,
+    status,
+    error,
+  } = useSelector((state) => state.depenses);
   const [searchText, setSearchText] = useState("");
   const [filteredDepenses, setFilteredDepenses] = useState([]);
 
   const getElapsedTime = (timestamp) => {
     const now = Date.now();
-    const elapsed = now - timestamp;
+    const elapsed = now - new Date(timestamp).getTime();
 
     const minutes = Math.floor(elapsed / 60000);
     const hours = Math.floor(minutes / 60);
@@ -34,100 +40,8 @@ const Depenses = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    loadDepenses();
-  }, []);
-
-  const loadDepenses = async () => {
-    try {
-      const savedDepenses = await AsyncStorage.getItem("depenses");
-      if (savedDepenses !== null) {
-        const parsedDepenses = JSON.parse(savedDepenses);
-        const updatedDepenses = parsedDepenses.map((dep) => ({
-          ...dep,
-          time: getElapsedTime(dep.timestamp),
-        }));
-        setDepensesList(updatedDepenses);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des dépenses:", error);
-    }
-  };
-
-  // Sauvegarder les dépenses
-  const saveDepenses = async (newList) => {
-    try {
-      await AsyncStorage.setItem("depenses", JSON.stringify(newList));
-    } catch (error) {
-      console.error("Erreur lors de la sauvegarde des dépenses:", error);
-    }
-  };
-
-  // Mettre à jour les temps affichés périodiquement
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDepensesList((currentList) =>
-        currentList.map((dep) => ({
-          ...dep,
-          time: getElapsedTime(dep.timestamp),
-        }))
-      );
-    }, 60000); // Mise à jour toutes les minutes
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Gérer l'ajout d'une nouvelle dépense
-  useEffect(() => {
-    const handleNewDepense = async () => {
-      if (route.params?.newDepense) {
-        try {
-          console.log("Réception nouvelle dépense:", route.params.newDepense);
-
-          const savedDepenses = await AsyncStorage.getItem("depenses");
-          const currentDepenses = savedDepenses
-            ? JSON.parse(savedDepenses)
-            : [];
-
-          const updatedDepenses = [route.params.newDepense, ...currentDepenses];
-
-          // Vérifier que la pièce justificative est bien présente
-          if (route.params.newDepense.pieceJustificative) {
-            const fileInfo = await FileSystem.getInfoAsync(
-              route.params.newDepense.pieceJustificative.uri
-            );
-            console.log("Vérification fichier dans Depenses.js:", fileInfo);
-          }
-
-          await AsyncStorage.setItem(
-            "depenses",
-            JSON.stringify(updatedDepenses)
-          );
-          console.log("Dépense sauvegardée avec succès");
-
-          setDepensesList(
-            updatedDepenses.map((dep) => ({
-              ...dep,
-              time: getElapsedTime(dep.timestamp),
-            }))
-          );
-
-          navigation.setParams({ newDepense: null });
-        } catch (error) {
-          console.error("Erreur lors de l'ajout de la dépense:", error);
-        }
-      }
-    };
-
-    handleNewDepense();
-  }, [route.params?.newDepense]);
-
-  // Gérer le rafraîchissement après modification/suppression
-  useEffect(() => {
-    if (route.params?.refresh) {
-      loadDepenses();
-      navigation.setParams({ refresh: null });
-    }
-  }, [route.params?.refresh]);
+    dispatch(fetchDepenses());
+  }, [dispatch]);
 
   // Fonction de filtrage des dépenses
   const filterDepenses = (text) => {
@@ -150,6 +64,22 @@ const Depenses = ({ navigation, route }) => {
   useEffect(() => {
     setFilteredDepenses(depensesList);
   }, [depensesList]);
+
+  if (status === "loading") {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#FFA500" />
+      </View>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>Erreur: {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -182,7 +112,7 @@ const Depenses = ({ navigation, route }) => {
         ) : (
           <FlatList
             data={filteredDepenses}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() =>
@@ -192,12 +122,14 @@ const Depenses = ({ navigation, route }) => {
                 <View style={styles.item}>
                   <View style={styles.itemHeader}>
                     <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemAmount}>{item.amount}</Text>
+                    <Text style={styles.itemAmount}>{item.amount} FCFA</Text>
                   </View>
                   <Text style={[styles.itemCategory, { flex: 0 }]}>
                     {item.category}
                   </Text>
-                  <Text style={styles.itemTime}>{item.time}</Text>
+                  <Text style={styles.itemTime}>
+                    {getElapsedTime(item.timestamp)}
+                  </Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -337,6 +269,17 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
     marginTop: 10,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

@@ -16,9 +16,12 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
+import { addDepense } from "../src/redux/features/depenses/depensesSlice";
 
 const AjoutDepenses = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [typeDepense, setTypeDepense] = useState("SALAIRE");
   const [moyenPaiement, setMoyenPaiement] = useState("WAVE");
   const [motif, setMotif] = useState("");
@@ -30,6 +33,7 @@ const AjoutDepenses = ({ navigation }) => {
   const [autreType, setAutreType] = useState("");
   const [showAutreInput, setShowAutreInput] = useState(false);
   const [isAutreSelected, setIsAutreSelected] = useState(false);
+  const API = "http://192.168.1.2:8000/api/depenses/";
 
   useEffect(() => {
     if (typeDepense === "AUTRE") {
@@ -46,61 +50,55 @@ const AjoutDepenses = ({ navigation }) => {
       return;
     }
 
-    if (typeDepense === "AUTRE" && !autreType) {
-      alert("Veuillez préciser le type de dépense");
-      return;
-    }
+    try {
+      const formData = new FormData();
 
-    let savedPieceJustificative = null;
-    if (pieceJustificative) {
-      try {
-        // Créer un nom de fichier unique
-        const fileName = `piece_${Date.now()}_${pieceJustificative.name}`;
-        const newUri = FileSystem.documentDirectory + fileName;
+      formData.append("title", motif.trim());
+      formData.append("amount", montant.replace(/\s/g, ""));
+      formData.append("category", typeDepense);
 
-        console.log("URI source:", pieceJustificative.uri);
-        console.log("URI destination:", newUri);
-
-        // Copier le fichier
-        await FileSystem.copyAsync({
-          from: pieceJustificative.uri,
-          to: newUri,
-        });
-
-        // Vérifier que le fichier a bien été copié
-        const fileInfo = await FileSystem.getInfoAsync(newUri);
-        console.log("Fichier copié avec succès:", fileInfo);
-
-        savedPieceJustificative = {
-          name: pieceJustificative.name,
-          uri: newUri,
-          type: pieceJustificative.type,
-        };
-
-        console.log(
-          "Pièce justificative sauvegardée:",
-          savedPieceJustificative
-        );
-      } catch (error) {
-        console.error("Erreur lors de la sauvegarde du fichier:", error);
-        alert("Erreur lors de la sauvegarde du fichier");
-        return;
+      if (typeDepense === "AUTRE" && autreType) {
+        formData.append("custom_category", autreType.trim());
       }
+
+      // Trouver la valeur correcte du moyen de paiement
+      const paymentMethod = paymentMethods.find(
+        (p) => p.label === moyenPaiement
+      );
+      formData.append(
+        "payment_method",
+        paymentMethod ? paymentMethod.value : moyenPaiement
+      );
+
+      if (pieceJustificative) {
+        formData.append("piece_justificative", {
+          uri: pieceJustificative.uri,
+          type: pieceJustificative.type || "application/octet-stream",
+          name: pieceJustificative.name,
+        });
+      }
+
+      const response = await fetch(API, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
+      }
+
+      const data = await response.json();
+      console.log("Success:", data);
+
+      navigation.navigate("Dépenses");
+    } catch (error) {
+      console.error("Erreur détaillée:", error);
+      alert("Erreur lors de l'enregistrement de la dépense: " + error.message);
     }
-
-    const newDepense = {
-      id: Date.now().toString(),
-      title: motif,
-      amount: `${montant}F CFA`,
-      category: typeDepense === "AUTRE" ? autreType : typeDepense,
-      paymentMethod: moyenPaiement,
-      timestamp: Date.now(),
-      time: "à l'instant",
-      pieceJustificative: savedPieceJustificative,
-    };
-
-    console.log("Nouvelle dépense complète:", newDepense);
-    navigation.navigate("Dépenses", { newDepense });
   };
 
   const pickDocument = async () => {
@@ -111,8 +109,6 @@ const AjoutDepenses = ({ navigation }) => {
 
       if (result.assets && result.assets.length > 0) {
         const selectedFile = result.assets[0];
-        console.log("Fichier sélectionné:", selectedFile);
-
         setPieceJustificative({
           name: selectedFile.name,
           uri: selectedFile.uri,
@@ -136,7 +132,7 @@ const AjoutDepenses = ({ navigation }) => {
         handleSave: handleSave,
       },
     });
-  }, [motif, montant, typeDepense, moyenPaiement]);
+  }, [motif, montant, typeDepense, moyenPaiement, pieceJustificative]);
 
   const paymentMethods = [
     {
@@ -148,13 +144,13 @@ const AjoutDepenses = ({ navigation }) => {
     {
       id: "2",
       label: "ORANGE MONEY",
-      value: "ORANGE MONEY",
+      value: "ORANGE_MONEY",
       image: require("../assets/Orange.png"),
     },
     {
       id: "3",
       label: "FREE MONEY",
-      value: "FREE MONEY",
+      value: "FREE_MONEY",
       image: require("../assets/free.png"),
     },
     {
@@ -201,10 +197,13 @@ const AjoutDepenses = ({ navigation }) => {
   const handleTypeChange = (value) => {
     if (value === "AUTRE") {
       setIsAutreSelected(true);
-      setTypeDepense("");
+      setTypeDepense("AUTRE");
+      setShowAutreInput(true);
     } else {
       setIsAutreSelected(false);
       setTypeDepense(value);
+      setShowAutreInput(false);
+      setAutreType("");
     }
   };
 
@@ -237,12 +236,12 @@ const AjoutDepenses = ({ navigation }) => {
           >
             <NewPicker.Item label="SALAIRE" value="SALAIRE" />
             <NewPicker.Item label="EAU" value="EAU" />
-            <NewPicker.Item label="ELECTRICITÉ" value="ELECTRICITÉ" />
+            <NewPicker.Item label="ELECTRICITE" value="ELECTRICITE" />
             <NewPicker.Item label="LOYER" value="LOYER" />
             <NewPicker.Item label="TRANSPORT" value="TRANSPORT" />
             <NewPicker.Item
-              label="APPROVISIONNEMENT PRODUIT"
-              value="APPROVISIONNEMENT PRODUIT"
+              label="APPROVISIONNEMENT"
+              value="APPROVISIONNEMENT"
             />
             <NewPicker.Item label="AUTRE" value="AUTRE" />
           </NewPicker>

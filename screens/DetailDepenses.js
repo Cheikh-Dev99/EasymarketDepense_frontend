@@ -1,11 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker as NewPicker } from "@react-native-picker/picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -17,27 +17,32 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
+import {
+  deleteDepense,
+  updateDepense,
+} from "../src/redux/features/depenses/depensesSlice";
 
 const DetailDepenses = ({ navigation, route }) => {
+  const dispatch = useDispatch();
   const depense = route.params?.depense;
-  console.log("Dépense reçue dans DetailDepenses:", depense);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pieceJustificative, setPieceJustificative] = useState(null);
+  const [pieceJustificative, setPieceJustificative] = useState(
+    depense?.piece_justificative || null
+  );
 
   const [typeDepense, setTypeDepense] = useState(
     depense?.category || "SALAIRE"
   );
   const [moyenPaiement, setMoyenPaiement] = useState(
-    depense?.paymentMethod || "WAVE"
+    depense?.payment_method || "WAVE"
   );
   const [motif, setMotif] = useState(depense?.title || "");
-  const [montant, setMontant] = useState(
-    depense?.amount?.replace("F CFA", "") || ""
-  );
+  const [montant, setMontant] = useState(depense?.amount?.toString() || "");
 
   const [autreType, setAutreType] = useState("");
   const [showAutreInput, setShowAutreInput] = useState(false);
@@ -97,12 +102,12 @@ const DetailDepenses = ({ navigation, route }) => {
 
   const handleUpdate = async () => {
     if (!motif || !montant) {
-      alert("Veuillez remplir tous les champs");
+      Alert.alert("Erreur", "Veuillez remplir tous les champs");
       return;
     }
 
     if (typeDepense === "AUTRE" && !autreType) {
-      alert("Veuillez préciser le type de dépense");
+      Alert.alert("Erreur", "Veuillez préciser le type de dépense");
       return;
     }
 
@@ -115,35 +120,42 @@ const DetailDepenses = ({ navigation, route }) => {
 
   const confirmAction = async () => {
     try {
-      const savedDepenses = await AsyncStorage.getItem("depenses");
-      let depenses = savedDepenses ? JSON.parse(savedDepenses) : [];
-
       if (modalType === "update") {
-        const updatedDepenses = depenses.map((dep) => {
-          if (dep.id === depense.id) {
-            return {
-              ...dep,
-              title: motif,
-              amount: `${montant}F CFA`,
-              category: typeDepense === "AUTRE" ? autreType : typeDepense,
-              paymentMethod: moyenPaiement,
-              pieceJustificative: pieceJustificative,
-              timestamp: Date.now(),
-              time: "modifié à l'instant",
-            };
-          }
-          return dep;
-        });
-        await AsyncStorage.setItem("depenses", JSON.stringify(updatedDepenses));
+        const depenseData = {
+          title: motif,
+          amount: montant,
+          category: typeDepense === "AUTRE" ? autreType : typeDepense,
+          payment_method: moyenPaiement,
+        };
+
+        if (pieceJustificative) {
+          depenseData.piece_justificative = {
+            uri: pieceJustificative.uri,
+            type: pieceJustificative.type,
+            name: pieceJustificative.name,
+          };
+        }
+
+        await dispatch(
+          updateDepense({
+            id: depense.id,
+            depenseData,
+          })
+        ).unwrap();
       } else if (modalType === "delete") {
-        const updatedDepenses = depenses.filter((dep) => dep.id !== depense.id);
-        await AsyncStorage.setItem("depenses", JSON.stringify(updatedDepenses));
+        await dispatch(deleteDepense(depense.id)).unwrap();
       }
 
       setModalVisible(false);
-      navigation.navigate("Dépenses", { refresh: true });
+      navigation.navigate("Dépenses");
     } catch (error) {
       console.error("Erreur:", error);
+      Alert.alert(
+        "Erreur",
+        modalType === "update"
+          ? "Erreur lors de la mise à jour de la dépense"
+          : "Erreur lors de la suppression de la dépense"
+      );
     }
   };
 
@@ -184,7 +196,7 @@ const DetailDepenses = ({ navigation, route }) => {
       }
     } catch (err) {
       console.error("Erreur lors de l'importation:", err);
-      alert("Erreur lors de l'importation du fichier");
+      Alert.alert("Erreur", "Erreur lors de l'importation du fichier");
     }
   };
 
@@ -198,26 +210,26 @@ const DetailDepenses = ({ navigation, route }) => {
         handleDelete: handleDelete,
       },
     });
-  }, [motif, montant, typeDepense]);
+  }, [motif, montant, typeDepense, moyenPaiement, pieceJustificative]);
 
   useEffect(() => {
     const loadPieceJustificative = async () => {
       console.log("État actuel de la pièce justificative:", pieceJustificative);
 
-      if (depense?.pieceJustificative && !pieceJustificative) {
+      if (depense?.piece_justificative && !pieceJustificative) {
         try {
           const fileInfo = await FileSystem.getInfoAsync(
-            depense.pieceJustificative.uri
+            depense.piece_justificative.uri
           );
           console.log("Info du fichier:", fileInfo);
 
           if (fileInfo.exists) {
             console.log("Le fichier existe, chargement...");
-            setPieceJustificative(depense.pieceJustificative);
+            setPieceJustificative(depense.piece_justificative);
           } else {
             console.log(
               "Le fichier n'existe pas à l'emplacement:",
-              depense.pieceJustificative.uri
+              depense.piece_justificative.uri
             );
           }
         } catch (error) {
