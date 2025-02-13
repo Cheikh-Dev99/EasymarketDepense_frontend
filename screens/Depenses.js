@@ -125,7 +125,9 @@ const Depenses = ({ navigation }) => {
                     <Text style={styles.itemAmount}>{item.amount} FCFA</Text>
                   </View>
                   <Text style={[styles.itemCategory, { flex: 0 }]}>
-                    {item.category}
+                    {item.category === "AUTRE"
+                      ? item.custom_category
+                      : item.category}
                   </Text>
                   <Text style={styles.itemTime}>
                     {getElapsedTime(item.timestamp)}

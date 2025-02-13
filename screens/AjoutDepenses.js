@@ -46,7 +46,7 @@ const AjoutDepenses = ({ navigation }) => {
 
   const handleSave = async () => {
     if (!motif || !montant) {
-      alert("Veuillez remplir tous les champs");
+      alert("Veuillez remplir tous les champs nécessaires");
       return;
     }
 
@@ -55,20 +55,15 @@ const AjoutDepenses = ({ navigation }) => {
 
       formData.append("title", motif.trim());
       formData.append("amount", montant.replace(/\s/g, ""));
-      formData.append("category", typeDepense);
+      formData.append("payment_method", moyenPaiement.trim());
 
-      if (typeDepense === "AUTRE" && autreType) {
-        formData.append("custom_category", autreType.trim());
+      // Si on est en mode saisie personnalisée (isAutreSelected est true)
+      if (isAutreSelected) {
+        formData.append("category", "AUTRE");
+        formData.append("custom_category", typeDepense.trim());
+      } else {
+        formData.append("category", typeDepense);
       }
-
-      // Trouver la valeur correcte du moyen de paiement
-      const paymentMethod = paymentMethods.find(
-        (p) => p.label === moyenPaiement
-      );
-      formData.append(
-        "payment_method",
-        paymentMethod ? paymentMethod.value : moyenPaiement
-      );
 
       if (pieceJustificative) {
         formData.append("piece_justificative", {
@@ -76,6 +71,12 @@ const AjoutDepenses = ({ navigation }) => {
           type: pieceJustificative.type || "application/octet-stream",
           name: pieceJustificative.name,
         });
+      }
+
+      // Log des données avant envoi
+      console.log("FormData content:");
+      for (let [key, value] of formData._parts) {
+        console.log(`${key}: ${value}`);
       }
 
       const response = await fetch(API, {
@@ -197,13 +198,10 @@ const AjoutDepenses = ({ navigation }) => {
   const handleTypeChange = (value) => {
     if (value === "AUTRE") {
       setIsAutreSelected(true);
-      setTypeDepense("AUTRE");
-      setShowAutreInput(true);
+      setTypeDepense("");
     } else {
       setIsAutreSelected(false);
       setTypeDepense(value);
-      setShowAutreInput(false);
-      setAutreType("");
     }
   };
 
@@ -432,10 +430,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 25,
     paddingHorizontal: 10,
     borderColor: "lightgray",
     backgroundColor: "#fff",
+    marginBottom: 15,
+    width: "100%",
   },
   pickerItemContainer: {
     flexDirection: "row",
@@ -604,8 +603,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   cancelButton: {
-    position: "absolute",
-    right: 10,
+    marginLeft: 10,
     padding: 5,
   },
 });
