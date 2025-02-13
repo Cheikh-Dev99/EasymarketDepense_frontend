@@ -1,11 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker as NewPicker } from "@react-native-picker/picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -19,30 +19,28 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
-import {
-  deleteDepense,
-  updateDepense,
-} from "../src/redux/features/depenses/depensesSlice";
 
 const DetailDepenses = ({ navigation, route }) => {
-  const dispatch = useDispatch();
   const depense = route.params?.depense;
+  console.log("Dépense reçue dans DetailDepenses:", depense);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pieceJustificative, setPieceJustificative] = useState(
-    depense?.piece_justificative || null
+  const [pieceJustificative, setPieceJustificative] = useState(null);
+
+  const paymentMethodRef = useRef(depense?.payment_method || "WAVE");
+  const [moyenPaiement, setMoyenPaiement] = useState(
+    depense?.payment_method || "WAVE"
   );
 
   const [typeDepense, setTypeDepense] = useState(
     depense?.category || "SALAIRE"
   );
-  const [moyenPaiement, setMoyenPaiement] = useState(
-    depense?.payment_method || "WAVE"
-  );
   const [motif, setMotif] = useState(depense?.title || "");
-  const [montant, setMontant] = useState(depense?.amount?.toString() || "");
+  const [montant, setMontant] = useState(
+    depense?.amount?.replace("F CFA", "") || ""
+  );
 
   const [autreType, setAutreType] = useState("");
   const [showAutreInput, setShowAutreInput] = useState(false);
@@ -59,13 +57,13 @@ const DetailDepenses = ({ navigation, route }) => {
     {
       id: "2",
       label: "ORANGE MONEY",
-      value: "ORANGE MONEY",
+      value: "ORANGE_MONEY",
       image: require("../assets/Orange.png"),
     },
     {
       id: "3",
       label: "FREE MONEY",
-      value: "FREE MONEY",
+      value: "FREE_MONEY",
       image: require("../assets/free.png"),
     },
     {
@@ -76,11 +74,22 @@ const DetailDepenses = ({ navigation, route }) => {
     },
   ];
 
+  useEffect(() => {
+    paymentMethodRef.current = moyenPaiement;
+  }, [moyenPaiement]);
+
   const renderPaymentMethod = ({ item }) => (
     <TouchableOpacity
       style={styles.paymentOption}
       onPress={() => {
+        console.log(
+          "Changement de moyen de paiement de",
+          moyenPaiement,
+          "à",
+          item.value
+        );
         setMoyenPaiement(item.value);
+        paymentMethodRef.current = item.value;
         setShowPaymentModal(false);
       }}
     >
@@ -95,23 +104,77 @@ const DetailDepenses = ({ navigation, route }) => {
 
   const selectedMethod = paymentMethods.find((p) => p.value === moyenPaiement);
 
+  useEffect(() => {
+    console.log("Moyen de paiement actuel:", moyenPaiement);
+  }, [moyenPaiement]);
+
   const showConfirmationModal = (type) => {
     setModalType(type);
     setModalVisible(true);
   };
 
+  const dispatch = useDispatch();
+
   const handleUpdate = async () => {
     if (!motif || !montant) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs");
+      alert("Veuillez remplir tous les champs");
       return;
     }
 
-    if (typeDepense === "AUTRE" && !autreType) {
-      Alert.alert("Erreur", "Veuillez préciser le type de dépense");
-      return;
-    }
+    try {
+      const formData = new FormData();
 
-    showConfirmationModal("update");
+      const currentPaymentMethod = paymentMethodRef.current;
+
+      formData.append("title", motif.trim());
+      formData.append("amount", montant.replace(/\s/g, ""));
+      formData.append("payment_method", currentPaymentMethod);
+
+      console.log("Moyen de paiement avant envoi:", currentPaymentMethod);
+
+      if (isAutreSelected) {
+        formData.append("category", "AUTRE");
+        formData.append("custom_category", typeDepense.trim());
+      } else {
+        formData.append("category", typeDepense);
+      }
+
+      if (pieceJustificative) {
+        formData.append("piece_justificative", {
+          uri: pieceJustificative.uri,
+          type: pieceJustificative.type || "application/octet-stream",
+          name: pieceJustificative.name,
+        });
+      }
+
+      for (let [key, value] of formData._parts) {
+        console.log(`FormData - ${key}:`, value);
+      }
+
+      const response = await fetch(
+        `http://192.168.1.2:8000/api/depenses/${depense.id}/`,
+        {
+          method: "PUT",
+          body: formData,
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Erreur serveur:", errorData);
+        throw new Error(JSON.stringify(errorData));
+      }
+
+      const data = await response.json();
+      console.log("Mise à jour réussie:", data);
+      navigation.navigate("Dépenses");
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour:", error);
+      alert("Erreur lors de la mise à jour de la dépense");
+    }
   };
 
   const handleDelete = () => {
@@ -120,42 +183,29 @@ const DetailDepenses = ({ navigation, route }) => {
 
   const confirmAction = async () => {
     try {
-      if (modalType === "update") {
-        const depenseData = {
-          title: motif,
-          amount: montant,
-          category: typeDepense === "AUTRE" ? autreType : typeDepense,
-          payment_method: moyenPaiement,
-        };
+      if (modalType === "delete") {
+        const response = await fetch(
+          `http://192.168.1.2:8000/api/depenses/${depense.id}/`,
+          {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        );
 
-        if (pieceJustificative) {
-          depenseData.piece_justificative = {
-            uri: pieceJustificative.uri,
-            type: pieceJustificative.type,
-            name: pieceJustificative.name,
-          };
+        if (!response.ok && response.status !== 204) {
+          throw new Error("Erreur lors de la suppression");
         }
 
-        await dispatch(
-          updateDepense({
-            id: depense.id,
-            depenseData,
-          })
-        ).unwrap();
-      } else if (modalType === "delete") {
-        await dispatch(deleteDepense(depense.id)).unwrap();
+        console.log("Suppression réussie");
+        setModalVisible(false);
+        navigation.navigate("Dépenses");
       }
-
-      setModalVisible(false);
-      navigation.navigate("Dépenses");
     } catch (error) {
-      console.error("Erreur:", error);
-      Alert.alert(
-        "Erreur",
-        modalType === "update"
-          ? "Erreur lors de la mise à jour de la dépense"
-          : "Erreur lors de la suppression de la dépense"
-      );
+      console.error("Erreur lors de la suppression:", error);
+      alert("Erreur lors de la suppression de la dépense");
+      setModalVisible(false);
     }
   };
 
@@ -196,7 +246,7 @@ const DetailDepenses = ({ navigation, route }) => {
       }
     } catch (err) {
       console.error("Erreur lors de l'importation:", err);
-      Alert.alert("Erreur", "Erreur lors de l'importation du fichier");
+      alert("Erreur lors de l'importation du fichier");
     }
   };
 
@@ -210,26 +260,26 @@ const DetailDepenses = ({ navigation, route }) => {
         handleDelete: handleDelete,
       },
     });
-  }, [motif, montant, typeDepense, moyenPaiement, pieceJustificative]);
+  }, [motif, montant, typeDepense]);
 
   useEffect(() => {
     const loadPieceJustificative = async () => {
       console.log("État actuel de la pièce justificative:", pieceJustificative);
 
-      if (depense?.piece_justificative && !pieceJustificative) {
+      if (depense?.pieceJustificative && !pieceJustificative) {
         try {
           const fileInfo = await FileSystem.getInfoAsync(
-            depense.piece_justificative.uri
+            depense.pieceJustificative.uri
           );
           console.log("Info du fichier:", fileInfo);
 
           if (fileInfo.exists) {
             console.log("Le fichier existe, chargement...");
-            setPieceJustificative(depense.piece_justificative);
+            setPieceJustificative(depense.pieceJustificative);
           } else {
             console.log(
               "Le fichier n'existe pas à l'emplacement:",
-              depense.piece_justificative.uri
+              depense.pieceJustificative.uri
             );
           }
         } catch (error) {
@@ -253,18 +303,11 @@ const DetailDepenses = ({ navigation, route }) => {
 
   useEffect(() => {
     if (depense) {
-      const isCustomType = ![
-        "SALAIRE",
-        "EAU",
-        "ELECTRICITÉ",
-        "LOYER",
-        "TRANSPORT",
-        "APPROVISIONNEMENT PRODUIT",
-      ].includes(depense.category);
-      if (isCustomType) {
+      if (depense.category === "AUTRE" && depense.custom_category) {
         setIsAutreSelected(true);
-        setTypeDepense(depense.category);
+        setTypeDepense(depense.custom_category);
       } else {
+        setIsAutreSelected(false);
         setTypeDepense(depense.category);
       }
     }
@@ -276,7 +319,11 @@ const DetailDepenses = ({ navigation, route }) => {
       setTypeDepense("");
     } else {
       setIsAutreSelected(false);
-      setTypeDepense(value);
+      if (value === "APPROVISIONNEMENT PRODUIT") {
+        setTypeDepense("APPROVISIONNEMENT");
+      } else {
+        setTypeDepense(value);
+      }
     }
   };
 
@@ -362,12 +409,12 @@ const DetailDepenses = ({ navigation, route }) => {
           >
             <NewPicker.Item label="SALAIRE" value="SALAIRE" />
             <NewPicker.Item label="EAU" value="EAU" />
-            <NewPicker.Item label="ELECTRICITÉ" value="ELECTRICITÉ" />
+            <NewPicker.Item label="ELECTRICITÉ" value="ELECTRICITE" />
             <NewPicker.Item label="LOYER" value="LOYER" />
             <NewPicker.Item label="TRANSPORT" value="TRANSPORT" />
             <NewPicker.Item
               label="APPROVISIONNEMENT PRODUIT"
-              value="APPROVISIONNEMENT PRODUIT"
+              value="APPROVISIONNEMENT"
             />
             <NewPicker.Item label="AUTRE" value="AUTRE" />
           </NewPicker>
@@ -406,7 +453,10 @@ const DetailDepenses = ({ navigation, route }) => {
                 color="#666"
               />
             )}
-            <Text style={styles.selectedPaymentText}>{moyenPaiement}</Text>
+            <Text style={styles.selectedPaymentText}>
+              {paymentMethods.find((p) => p.value === moyenPaiement)?.label ||
+                moyenPaiement}
+            </Text>
           </View>
           <MaterialCommunityIcons name="chevron-down" size={24} color="#666" />
         </TouchableOpacity>
@@ -533,6 +583,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderColor: "lightgray",
     backgroundColor: "#fff",
+    width: "100%",
   },
   picker: {
     height: 60,
@@ -741,11 +792,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 25,
+    width: "100%",
   },
   cancelButton: {
     position: "absolute",
-    right: 10,
+    right: 5,
     padding: 5,
+    top: 12,
+    zIndex: 1,
   },
 });
 
