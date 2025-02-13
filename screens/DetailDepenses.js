@@ -134,34 +134,31 @@ const DetailDepenses = ({ navigation, route }) => {
         formData.append("category", typeDepense);
       }
 
-      if (pieceJustificative) {
-        if (pieceJustificative.uri.startsWith("file://")) {
-          console.log("Envoi du nouveau fichier:", pieceJustificative);
-          formData.append("piece_justificative", {
-            uri: pieceJustificative.uri,
-            type:
-              pieceJustificative.mimeType ||
-              pieceJustificative.type ||
-              "application/octet-stream",
-            name: pieceJustificative.name,
-          });
-        } else if (pieceJustificative.uri.startsWith("http")) {
-          console.log("Conservation du fichier existant");
-        }
-      } else {
-        console.log("Suppression du fichier");
-        formData.append("piece_justificative", "");
+      if (pieceJustificative === null) {
+        formData.append("piece_justificative", "delete");
+      } else if (
+        pieceJustificative &&
+        pieceJustificative.uri.startsWith("file://")
+      ) {
+        formData.append("piece_justificative", {
+          uri: pieceJustificative.uri,
+          type:
+            pieceJustificative.mimeType ||
+            pieceJustificative.type ||
+            "application/octet-stream",
+          name: pieceJustificative.name,
+        });
       }
 
-      console.log("FormData avant envoi:");
-      for (let [key, value] of formData._parts) {
-        console.log(`${key}:`, value);
+      console.log("FormData complet avant envoi:");
+      for (let pair of formData._parts) {
+        console.log(pair[0], pair[1]);
       }
 
       const response = await fetch(
         `http://192.168.1.2:8000/api/depenses/${depense.id}/`,
         {
-          method: "PUT",
+          method: "PATCH",
           body: formData,
           headers: {
             Accept: "application/json",
