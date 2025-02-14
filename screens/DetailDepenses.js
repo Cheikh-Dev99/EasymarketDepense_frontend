@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
+import { depensesApi } from "../src/services/api";
 
 const DetailDepenses = ({ navigation, route }) => {
   const depense = route.params?.depense;
@@ -127,73 +128,50 @@ const DetailDepenses = ({ navigation, route }) => {
       formData.append("amount", montant.replace(/\s/g, ""));
       formData.append("payment_method", paymentMethodRef.current);
 
+      // Gestion du type de dépense
       if (isAutreSelected) {
         formData.append("category", "AUTRE");
         formData.append("custom_category", typeDepense.trim());
       } else {
-        formData.append("category", typeDepense);
+        // Pour APPROVISIONNEMENT PRODUIT
+        if (typeDepense === "APPROVISIONNEMENT PRODUIT") {
+          formData.append("category", "APPROVISIONNEMENT");
+        } else {
+          formData.append("category", typeDepense);
+        }
       }
 
+      // Gestion de la pièce justificative
       if (pieceJustificative === null) {
         formData.append("piece_justificative", "delete");
       } else if (
         pieceJustificative &&
         pieceJustificative.uri.startsWith("file://")
       ) {
+        const fileType = pieceJustificative.type || "image/jpeg";
         formData.append("piece_justificative", {
           uri: pieceJustificative.uri,
-          type:
-            pieceJustificative.mimeType ||
-            pieceJustificative.type ||
-            "application/octet-stream",
-          name: pieceJustificative.name,
-        });
-      }
-
-      console.log("FormData complet avant envoi:");
-      for (let pair of formData._parts) {
-        console.log(pair[0], pair[1]);
-      }
-
-      const response = await fetch(
-        `http://192.168.1.2:8000/api/depenses/${depense.id}/`,
-        {
-          method: "PATCH",
-          body: formData,
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Erreur serveur:", errorData);
-        throw new Error(JSON.stringify(errorData));
-      }
-
-      const data = await response.json();
-      console.log("Mise à jour réussie:", data);
-
-      if (data.piece_justificative) {
-        const fileName = data.piece_justificative.split("/").pop();
-        const fileType = fileName.toLowerCase().endsWith(".pdf")
-          ? "application/pdf"
-          : "image/jpeg";
-        setPieceJustificative({
-          uri: data.piece_justificative,
           type: fileType,
-          name: fileName,
+          name: pieceJustificative.name || "piece_justificative.jpg",
         });
-      } else {
-        setPieceJustificative(null);
       }
+
+      // Log des données avant envoi
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      const response = await depensesApi.updateDepense(depense.id, formData);
+      console.log("Réponse du serveur:", response.data);
 
       navigation.navigate("Dépenses");
     } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
-      alert("Erreur lors de la mise à jour de la dépense");
+      console.error("Erreur complète:", error);
+      console.error("Réponse du serveur:", error.response?.data);
+      alert(
+        "Erreur lors de la mise à jour: " +
+          (error.response?.data?.detail || error.message)
+      );
     }
   };
 
@@ -205,7 +183,7 @@ const DetailDepenses = ({ navigation, route }) => {
     try {
       if (modalType === "delete") {
         const response = await fetch(
-          `http://192.168.1.2:8000/api/depenses/${depense.id}/`,
+          `https://easymarketdepense-backend.onrender.com/api/depenses/${depense.id}/`,
           {
             method: "DELETE",
             headers: {

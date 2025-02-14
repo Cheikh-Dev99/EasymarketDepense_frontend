@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Footer from "../components/Footer";
 import { fetchDepenses } from "../src/redux/features/depenses/depensesSlice";
+import { depensesApi } from "../src/services/api";
 
 import {
   ActivityIndicator,
@@ -13,6 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+const API = "https://easymarketdepense-backend.onrender.com/api/depenses/";
 
 const Depenses = ({ navigation }) => {
   const dispatch = useDispatch();

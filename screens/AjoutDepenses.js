@@ -19,6 +19,7 @@ import {
 import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
 import { addDepense } from "../src/redux/features/depenses/depensesSlice";
+import { depensesApi } from "../src/services/api";
 
 const AjoutDepenses = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -33,7 +34,7 @@ const AjoutDepenses = ({ navigation }) => {
   const [autreType, setAutreType] = useState("");
   const [showAutreInput, setShowAutreInput] = useState(false);
   const [isAutreSelected, setIsAutreSelected] = useState(false);
-  const API = "http://192.168.1.2:8000/api/depenses/";
+  const API = "https://easymarketdepense-backend.onrender.com/api/depenses/";
 
   useEffect(() => {
     if (typeDepense === "AUTRE") {
