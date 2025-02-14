@@ -49,23 +49,23 @@ EasyMarket Dépenses est une application mobile développée avec React Native q
 
 ## 📁 Structure du projet
 EasymarketDepense_frontend/
-├── App.js # Point d'entrée de l'application
-├── screens/
-│ ├── Modules.js # Écran d'accueil avec grille de modules
-│ ├── Depenses.js # Liste des dépenses
-│ ├── AjoutDepenses.js # Formulaire d'ajout de dépense
-│ └── DetailDepenses.js # Vue détaillée et modification
-├── components/
-│ └── Footer.js # Barre de navigation commune
-├── src/
-│ ├── redux/ # Configuration Redux
-│ │ ├── store.js
-│ │ └── features/
-│ │ └── depenses/
-│ │ └── depensesSlice.js
-│ └── services/
-│ └── api.js # Services API
-└── assets/ # Images et ressources
+├── App.js                          # Point d'entrée de l'application
+├── screens/                        # Écrans de l'application
+│   ├── Modules.js                  # Écran d'accueil avec grille de modules
+│   ├── Depenses.js                 # Liste des dépenses
+│   ├── AjoutDepenses.js            # Formulaire d'ajout de dépense
+│   └── DetailDepenses.js           # Vue détaillée et modification
+├── components/                     # Composants réutilisables
+│   └── Footer.js                   # Barre de navigation commune
+├── src/                            # Code source
+│   ├── redux/                      # Configuration Redux
+│   │   ├── store.js
+│   │   └── features/
+│   │       └── depenses/
+│   │           └── depensesSlice.js
+│   └── services/                   # Services API
+│       └── api.js
+└── assets/                         # Images et ressources
 
 ## 🔄 Flux de données
 
@@ -106,10 +106,10 @@ expo run:android
 - iOS 13+ ou Android 6.0+
 
 ## 📝 Notes
-- L'application nécessite une connexion au backend Django stocker sur les serveurs de Render
+- L'application nécessite une connexion au backend Django stocké sur les serveurs de Render
 
 ## 👥 Équipe
-moi: Cheikh Ahmed Tidiane Gueye
+Cheikh Ahmed Tidiane Gueye
 
 ---
 Développé avec ❤️ pour EasyMarket
