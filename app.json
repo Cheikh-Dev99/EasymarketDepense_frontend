@@ -23,15 +23,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.easymarket.depenses"
+      "package": "com.cheikhdev99.easymarketdepenses"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "votre-project-id"
+        "projectId": "2891c725-c530-427a-963f-fc50e8dc6b24"
       }
-    }
+    },
+    "owner": "cheikhdev99"
   }
 }
