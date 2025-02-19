@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Footer = ({ navigation }) => {
@@ -45,7 +45,10 @@ const Footer = ({ navigation }) => {
         onPress={() => navigation.navigate("Modules")}
         style={styles.footerItem}
       >
-        <MaterialCommunityIcons name="cube-outline" size={30} color="#FFA500" />
+        <Image 
+          source={require('../assets/Modules.png')} 
+          style={styles.footerIcon}
+        />
         <Text style={[styles.footerText, styles.activeFooterText]}>
           Modules
         </Text>
@@ -76,6 +79,12 @@ const styles = StyleSheet.create({
   activeFooterText: {
     color: "#FFA500",
     fontWeight: "bold",
+  },
+  footerIcon: {
+    width: 25,
+    height: 25,
+    marginBottom: 4,
+    tintColor: '#FFA500',
   },
 });
 
