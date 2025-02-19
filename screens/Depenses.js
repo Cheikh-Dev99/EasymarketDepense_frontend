@@ -73,6 +73,51 @@ const Depenses = ({ navigation }) => {
     setFilteredDepenses(depensesList);
   }, [depensesList]);
 
+  // Fonction pour grouper les dépenses par date
+  const groupByDate = (depenses) => {
+    const groups = {};
+    depenses.forEach((depense) => {
+      const date = new Date(depense.timestamp);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      let dateKey;
+      if (date.toDateString() === today.toDateString()) {
+        dateKey = "Aujourd'hui";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dateKey = "Hier";
+      } else {
+        dateKey = date.toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+      }
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(depense);
+    });
+    return groups;
+  };
+
+  // Préparer les données pour FlatList
+  const prepareData = () => {
+    const grouped = groupByDate(filteredDepenses);
+    return Object.entries(grouped).map(([date, depenses]) => ({
+      title: date,
+      data: depenses
+    }));
+  };
+
+  const renderDateHeader = ({ title }) => (
+    <View style={styles.dateHeader}>
+      <Text style={styles.dateHeaderText}>{title}</Text>
+    </View>
+  );
+
   if (status === "loading") {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -114,12 +159,6 @@ const Depenses = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        {/* <MaterialCommunityIcons
-          name="magnify"
-          size={20}
-          color="#7F8C8D"
-          style={styles.searchIcon}
-        /> */}
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher par titre ou catégorie"
@@ -131,10 +170,6 @@ const Depenses = ({ navigation }) => {
       <View style={styles.main}>
         {depensesList.length === 0 ? (
           <View style={styles.emptyContainer}>
-            {/* <MaterialCommunityIcons name="receipt" size={50} color="#ccc" />
-            <Text style={styles.emptyText}>
-              Aucune dépense enregistrée pour le moment.
-            </Text> */}
             <Text style={styles.emptySubText}>
               Aucune dépense enregistrée pour le moment. Cliquez sur le + pour
               ajouter une nouvelle dépense.
@@ -142,9 +177,14 @@ const Depenses = ({ navigation }) => {
           </View>
         ) : (
           <FlatList
-            data={filteredDepenses}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderItem}
+            data={prepareData()}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <>
+                {renderDateHeader(item)}
+                {item.data.map((depense) => renderItem({ item: depense }))}
+              </>
+            )}
           />
         )}
         <TouchableOpacity
@@ -293,6 +333,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  dateHeader: {
+    backgroundColor: 'white',
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  dateHeaderText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'black',
   },
 });
 
