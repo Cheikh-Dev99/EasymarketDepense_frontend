@@ -15,6 +15,7 @@ import Depenses from "./screens/Depenses";
 import DetailDepenses from "./screens/DetailDepenses";
 import Modules from "./screens/Modules";
 import { store } from "./src/redux/store";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Stack = createStackNavigator();
 
@@ -26,18 +27,36 @@ export default function App() {
           <Stack.Screen
             name="Modules"
             component={Modules}
-            options={{ title: "Modules", headerShown: false }}
+            options={{ 
+              title: "Modules",
+              headerShown: false,
+              headerTitleStyle: {
+                fontWeight: "bold",
+              }
+            }}
           />
           <Stack.Screen
             name="Dépenses"
             component={Depenses}
-            options={{
+            options={({ navigation }) => ({
               title: "Dépenses",
               headerTitleAlign: "center",
               headerTitleStyle: {
                 fontWeight: "bold",
               },
-            }}
+              headerLeft: () => (
+                <TouchableOpacity
+                  style={{ marginLeft: 15 }}
+                  onPress={() => navigation.navigate('Modules')} // Modifié pour naviguer explicitement vers Modules
+                >
+                  <MaterialCommunityIcons 
+                    name="arrow-left" 
+                    size={24} 
+                    color="black" 
+                  />
+                </TouchableOpacity>
+              ),
+            })}
           />
           <Stack.Screen
             name="AjoutDepenses"
