@@ -20,6 +20,10 @@ import {
 import { useDispatch } from "react-redux";
 import Footer from "../components/Footer";
 import { depensesApi } from "../src/services/api";
+import URL from "../API_URL";
+import { updateDepenseInStore } from '../src/redux/features/depenses/depensesSlice';
+
+const API = URL;
 
 const DetailDepenses = ({ navigation, route }) => {
   const depense = route.params?.depense;
@@ -163,8 +167,18 @@ const DetailDepenses = ({ navigation, route }) => {
 
       const response = await depensesApi.updateDepense(depense.id, formData);
       console.log("Réponse du serveur:", response.data);
+      
+      // Dispatch l'action de mise à jour
+      dispatch(updateDepenseInStore(response.data));
 
-      navigation.navigate("Dépenses");
+      // Navigation avec reset pour forcer le rafraîchissement
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dépenses' }],
+        });
+      }, 100);
+
     } catch (error) {
       console.error("Erreur complète:", error);
       console.error("Réponse du serveur:", error.response?.data);
@@ -178,31 +192,25 @@ const DetailDepenses = ({ navigation, route }) => {
   const handleDelete = () => {
     showConfirmationModal("delete");
   };
-
+  
   const confirmAction = async () => {
     try {
       if (modalType === "delete") {
-        const response = await fetch(
-          `https://easymarketdepense-backend.onrender.com/api/depenses/${depense.id}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
-
-        if (!response.ok && response.status !== 204) {
-          throw new Error("Erreur lors de la suppression");
-        }
-
+        await depensesApi.deleteDepense(depense.id);
         console.log("Suppression réussie");
         setModalVisible(false);
-        navigation.navigate("Dépenses");
+        // Attendre un peu avant de naviguer pour s'assurer que la modal est bien fermée
+        setTimeout(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Dépenses' }],
+          });
+        }, 100);
       }
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression de la dépense");
+      const errorMessage = error.response?.data?.detail || "Erreur lors de la suppression de la dépense";
+      alert(errorMessage);
       setModalVisible(false);
     }
   };
@@ -253,13 +261,62 @@ const DetailDepenses = ({ navigation, route }) => {
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
 
   useEffect(() => {
-    navigation.setParams({
-      component: {
-        handleSave: handleUpdate,
-        handleDelete: handleDelete,
-      },
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{alignItems: 'center' }}>
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: 'bold',
+            marginLeft: -15,
+          }}>
+            Détail dépense
+          </Text>
+        </View>
+      ),
+      headerRight: () => (
+        <View style={{ 
+          flexDirection: "row", 
+          marginRight: 10,
+          marginLeft: 10,
+        }}>
+          <TouchableOpacity
+            style={{
+              width: 100,
+              marginRight: 5,
+              borderWidth: 1,
+              borderColor: "#FF3B30",
+              padding: 10,
+              borderRadius: 5,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={handleDelete}
+          >
+            <Text style={{ color: "#FF3B30", fontWeight: "500", textAlign: "center" }}>
+              Supprimer
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              width: 100,
+              borderWidth: 1,
+              borderColor: "#05365F",
+              backgroundColor: "#05365F",
+              padding: 10,
+              borderRadius: 5,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={handleUpdate}
+          >
+            <Text style={{ color: "white", fontWeight: "500", textAlign: "center" }}>
+              Enregistrer
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ),
     });
-  }, [motif, montant, typeDepense]);
+  }, [navigation, handleUpdate, handleDelete]);
 
   useEffect(() => {
     const loadPieceJustificative = async () => {

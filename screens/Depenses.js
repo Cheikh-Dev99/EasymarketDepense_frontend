@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Footer from "../components/Footer";
 import { fetchDepenses } from "../src/redux/features/depenses/depensesSlice";
-import { depensesApi } from "../src/services/api";
 
 import {
   ActivityIndicator,
@@ -14,8 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-const API = "https://easymarketdepense-backend.onrender.com/api/depenses/";
 
 const Depenses = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -43,8 +40,16 @@ const Depenses = ({ navigation }) => {
   };
 
   useEffect(() => {
+    // Charger les dépenses au montage du composant
     dispatch(fetchDepenses());
-  }, [dispatch]);
+
+    // Ajouter un listener pour le focus de l'écran
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(fetchDepenses());
+    });
+
+    return unsubscribe;
+  }, [dispatch, navigation]);
 
   // Fonction de filtrage des dépenses
   const filterDepenses = (text) => {
@@ -84,15 +89,37 @@ const Depenses = ({ navigation }) => {
     );
   }
 
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("DetailDepenses", { depense: item })}
+      key={item.id}
+    >
+      <View style={styles.item}>
+        <View style={styles.itemHeader}>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          <Text style={styles.itemAmount}>{item.amount} FCFA</Text>
+        </View>
+        <Text style={[styles.itemCategory, { flex: 0 }]}>
+          {item.category === "AUTRE"
+            ? item.custom_category
+            : item.category}
+        </Text>
+        <Text style={styles.itemTime}>
+          {getElapsedTime(item.timestamp)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <MaterialCommunityIcons
+        {/* <MaterialCommunityIcons
           name="magnify"
           size={20}
           color="#7F8C8D"
           style={styles.searchIcon}
-        />
+        /> */}
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher par titre ou catégorie"
@@ -104,40 +131,20 @@ const Depenses = ({ navigation }) => {
       <View style={styles.main}>
         {depensesList.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="receipt" size={50} color="#ccc" />
+            {/* <MaterialCommunityIcons name="receipt" size={50} color="#ccc" />
             <Text style={styles.emptyText}>
               Aucune dépense enregistrée pour le moment.
-            </Text>
+            </Text> */}
             <Text style={styles.emptySubText}>
-              Cliquez sur le + pour ajouter une nouvelle dépense.
+              Aucune dépense enregistrée pour le moment. Cliquez sur le + pour
+              ajouter une nouvelle dépense.
             </Text>
           </View>
         ) : (
           <FlatList
             data={filteredDepenses}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("DetailDepenses", { depense: item })
-                }
-              >
-                <View style={styles.item}>
-                  <View style={styles.itemHeader}>
-                    <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemAmount}>{item.amount} FCFA</Text>
-                  </View>
-                  <Text style={[styles.itemCategory, { flex: 0 }]}>
-                    {item.category === "AUTRE"
-                      ? item.custom_category
-                      : item.category}
-                  </Text>
-                  <Text style={styles.itemTime}>
-                    {getElapsedTime(item.timestamp)}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={renderItem}
           />
         )}
         <TouchableOpacity
@@ -230,7 +237,8 @@ const styles = StyleSheet.create({
   itemAmount: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFA500",
+    // color: "#FFA500",
+    color: "#000",
   },
   itemCategory: {
     fontSize: 14,
@@ -257,23 +265,23 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
+    // flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 16,
     color: "#666",
-    textAlign: "center",
-    marginTop: 20,
+    // textAlign: "center",
+    // marginTop: 20,
     fontWeight: "bold",
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: 20,
     color: "#999",
-    textAlign: "center",
-    marginTop: 10,
+    // textAlign: "center",
+    // marginTop: 10,
   },
   centered: {
     flex: 1,

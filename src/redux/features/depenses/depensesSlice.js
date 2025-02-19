@@ -60,6 +60,14 @@ export const deleteDepense = createAsyncThunk(
   }
 );
 
+// Renommer cette action pour éviter le conflit
+export const updateDepenseInStore = createAsyncThunk(
+  'depenses/updateDepenseInStore', // Changement du type d'action
+  async (updatedDepense) => {
+    return updatedDepense;
+  }
+);
+
 const depensesSlice = createSlice({
   name: "depenses",
   initialState: {
@@ -94,10 +102,24 @@ const depensesSlice = createSlice({
         if (index !== -1) {
           state.items[index] = action.payload;
         }
+        // Trier les dépenses par date de mise à jour
+        state.items.sort((a, b) => 
+          new Date(b.updated_at) - new Date(a.updated_at)
+        );
       })
       // Delete Depense
       .addCase(deleteDepense.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
+      })
+      .addCase(updateDepenseInStore.fulfilled, (state, action) => {
+        const index = state.items.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        // Trier les dépenses par date de mise à jour
+        state.items.sort((a, b) => 
+          new Date(b.updated_at) - new Date(a.updated_at)
+        );
       });
   },
 });

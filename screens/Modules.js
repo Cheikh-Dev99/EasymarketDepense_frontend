@@ -42,18 +42,15 @@ const Modules = ({ navigation }) => {
         <Text style={styles.headerTitle}>Modules</Text>
         <View style={styles.headerIcons}>
           <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={30}
-              color="#000"
-              style={{ marginRight: 5 }}
+            <Image
+              source={require("../assets/bell.png")}
+              style={{ width: 25, height: 30, marginRight: 10 }}
             />
           </TouchableOpacity>
           <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="account-outline"
-              size={30}
-              color="#000"
+            <Image
+              source={require("../assets/account.png")}
+              style={{ width: 25, height: 30 }}
             />
           </TouchableOpacity>
         </View>
@@ -94,7 +91,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
     elevation: 4,
-    paddingTop: 70,
+    paddingTop: 50,
     paddingBottom: 10,
   },
   logo: {
@@ -110,6 +107,7 @@ const styles = StyleSheet.create({
   },
   headerIcons: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   main: {
@@ -121,7 +119,6 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: "space-between",
-    marginBottom: 15,
   },
   card: {
     width: "48%",

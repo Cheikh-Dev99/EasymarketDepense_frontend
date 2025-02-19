@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
+import URL from "../API_URL";
 import Footer from "../components/Footer";
 import { addDepense } from "../src/redux/features/depenses/depensesSlice";
 import { depensesApi } from "../src/services/api";
@@ -34,7 +35,7 @@ const AjoutDepenses = ({ navigation }) => {
   const [autreType, setAutreType] = useState("");
   const [showAutreInput, setShowAutreInput] = useState(false);
   const [isAutreSelected, setIsAutreSelected] = useState(false);
-  const API = "https://easymarketdepense-backend.onrender.com/api/depenses/";
+  const API = URL;
 
   useEffect(() => {
     if (typeDepense === "AUTRE") {
@@ -51,14 +52,19 @@ const AjoutDepenses = ({ navigation }) => {
       return;
     }
 
+    // Vérification du montant
+    const montantValue = parseFloat(montant.replace(/\s/g, ""));
+    if (isNaN(montantValue) || montantValue <= 0) {
+      alert("Le montant doit être supérieur à 0");
+      return;
+    }
+
     try {
       const formData = new FormData();
-
       formData.append("title", motif.trim());
-      formData.append("amount", montant.replace(/\s/g, ""));
+      formData.append("amount", montantValue.toString());
       formData.append("payment_method", moyenPaiement.trim());
 
-      // Si on est en mode saisie personnalisée (isAutreSelected est true)
       if (isAutreSelected) {
         formData.append("category", "AUTRE");
         formData.append("custom_category", typeDepense.trim());
@@ -74,32 +80,24 @@ const AjoutDepenses = ({ navigation }) => {
         });
       }
 
-      // Log des données avant envoi
-      console.log("FormData content:");
-      for (let [key, value] of formData._parts) {
-        console.log(`${key}: ${value}`);
-      }
-
-      const response = await fetch(API, {
-        method: "POST",
-        body: formData,
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(JSON.stringify(errorData));
-      }
-
-      const data = await response.json();
-      console.log("Success:", data);
-
-      navigation.navigate("Dépenses");
+      const response = await depensesApi.createDepense(formData);
+      console.log("Success:", response.data);
+      
+      // Attendre un court instant avant la navigation
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dépenses' }],
+        });
+      }, 100);
+      
     } catch (error) {
       console.error("Erreur détaillée:", error);
-      alert("Erreur lors de l'enregistrement de la dépense: " + error.message);
+      // Amélioration du message d'erreur
+      const errorMessage = error.response?.data?.detail?.amount?.[0] || 
+                          error.response?.data?.detail || 
+                          error.message;
+      alert("Erreur lors de l'enregistrement de la dépense: " + errorMessage);
     }
   };
 
@@ -127,14 +125,32 @@ const AjoutDepenses = ({ navigation }) => {
     setPieceJustificative(null);
   };
 
-  // Exposer handleSave au composant parent
-  React.useEffect(() => {
-    navigation.setParams({
-      component: {
-        handleSave: handleSave,
-      },
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{
+            width: 100,
+            borderWidth: 1,
+            borderColor: "#05365F",
+            backgroundColor: "#05365F",
+            padding: 10,
+            margin: 10,
+            borderRadius: 5,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onPress={handleSave}
+        >
+          <Text
+            style={{ color: "white", fontWeight: "500", textAlign: "center" }}
+          >
+            Enregistrer
+          </Text>
+        </TouchableOpacity>
+      ),
     });
-  }, [motif, montant, typeDepense, moyenPaiement, pieceJustificative]);
+  }, [navigation, handleSave]);
 
   const paymentMethods = [
     {
