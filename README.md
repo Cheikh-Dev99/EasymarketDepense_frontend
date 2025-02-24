@@ -91,7 +91,7 @@ EasymarketDepense_frontend/
 npm install
 
 # Démarrage du projet
-expo start
+npx expo start
 
 # Lancement sur iOS
 expo run:ios
@@ -109,7 +109,7 @@ expo run:android
 - L'application nécessite une connexion au backend Django stocké sur les serveurs de Render
 
 ## 👥 Équipe
-Cheikh Ahmed Tidiane Gueye
+Cheikh Ahmed Tidiane Gueye (Bakeliste en programmation)
 
 ---
-Développé avec ❤️ pour EasyMarket
+Développé avec ❤️ pour EasyMarket (Volkeno)

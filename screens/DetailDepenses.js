@@ -618,7 +618,7 @@ const DetailDepenses = ({ navigation, route }) => {
         </TouchableOpacity>
       </Modal>
 
-      <Footer navigation={navigation} />
+      <Footer />
     </View>
   );
 };

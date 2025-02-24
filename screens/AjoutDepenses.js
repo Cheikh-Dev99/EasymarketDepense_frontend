@@ -407,7 +407,7 @@ const AjoutDepenses = ({ navigation }) => {
           </>
         )}
       </View>
-      <Footer navigation={navigation} />
+      <Footer />
     </View>
   );
 };

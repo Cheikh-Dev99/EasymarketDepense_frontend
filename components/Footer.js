@@ -1,55 +1,77 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Footer = ({ navigation }) => {
+const Footer = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const currentRoute = route.name;
+
   return (
     <View style={styles.footer}>
       <TouchableOpacity
         onPress={() => navigation.navigate("Accueil")}
         style={styles.footerItem}
       >
-        <MaterialCommunityIcons name="home-outline" size={30} color="#000" />
-        <Text style={styles.footerText}>Accueil</Text>
+        <Icon 
+          name="home" 
+          size={24} 
+          color={currentRoute === "Accueil" ? "#FFA500" : "#000"} 
+        />
+        <Text style={[styles.footerText, currentRoute === "Accueil" && styles.activeFooterText]}>
+          Accueil
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate("Commandes")}
         style={styles.footerItem}
       >
-        <MaterialCommunityIcons
-          name="clipboard-text-outline"
-          size={30}
-          color="#000"
+        <Icon 
+          name="list-alt" 
+          size={24} 
+          color={currentRoute === "Commandes" ? "#FFA500" : "#000"} 
         />
-        <Text style={styles.footerText}>Commandes</Text>
+        <Text style={[styles.footerText, currentRoute === "Commandes" && styles.activeFooterText]}>
+          Commandes
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate("Produits")}
         style={styles.footerItem}
       >
-        <MaterialCommunityIcons name="tag-outline" size={30} color="#000" />
-        <Text style={styles.footerText}>Produits</Text>
+        <Icon 
+          name="tags" 
+          size={24} 
+          color={currentRoute === "Produits" ? "#FFA500" : "#000"} 
+        />
+        <Text style={[styles.footerText, currentRoute === "Produits" && styles.activeFooterText]}>
+          Produits
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate("Categories")}
         style={styles.footerItem}
       >
-        <MaterialCommunityIcons
-          name="view-grid-outline"
-          size={30}
-          color="#000"
+        <Icon 
+          name="th-large" 
+          size={24} 
+          color={currentRoute === "Categories" ? "#FFA500" : "#000"} 
         />
-        <Text style={styles.footerText}>Catégories</Text>
+        <Text style={[styles.footerText, currentRoute === "Categories" && styles.activeFooterText]}>
+          Catégories
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate("Modules")}
         style={styles.footerItem}
       >
-        <Image 
-          source={require('../assets/Modules.png')} 
-          style={styles.footerIcon}
+        <Icon 
+          name="cogs" 
+          size={24} 
+          color={currentRoute === "Modules" ? "#FFA500" : "#000"} 
         />
-        <Text style={[styles.footerText, styles.activeFooterText]}>
+        <Text style={[styles.footerText, currentRoute === "Modules" && styles.activeFooterText]}>
           Modules
         </Text>
       </TouchableOpacity>
@@ -71,6 +93,7 @@ const styles = StyleSheet.create({
   },
   footerItem: {
     alignItems: "center",
+    padding: 4,
   },
   footerText: {
     fontSize: 12,
@@ -79,12 +102,6 @@ const styles = StyleSheet.create({
   activeFooterText: {
     color: "#FFA500",
     fontWeight: "bold",
-  },
-  footerIcon: {
-    width: 25,
-    height: 25,
-    marginBottom: 4,
-    tintColor: '#FFA500',
   },
 });
 

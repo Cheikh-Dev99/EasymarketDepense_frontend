@@ -1,21 +1,15 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
-import {
-  Picker,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { Provider } from "react-redux";
+import Accueil from "./screens/Accueil";
 import AjoutDepenses from "./screens/AjoutDepenses";
 import Depenses from "./screens/Depenses";
 import DetailDepenses from "./screens/DetailDepenses";
 import Modules from "./screens/Modules";
 import { store } from "./src/redux/store";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { TouchableOpacity } from "react-native";
 
 const Stack = createStackNavigator();
 
@@ -23,7 +17,15 @@ export default function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Modules">
+        <Stack.Navigator initialRouteName="Accueil">
+          <Stack.Screen
+            name="Accueil"
+            component={Accueil}
+            options={{ 
+              title: "Accueil",
+              headerShown: false,
+            }}
+          />
           <Stack.Screen
             name="Modules"
             component={Modules}
@@ -47,7 +49,7 @@ export default function App() {
               headerLeft: () => (
                 <TouchableOpacity
                   style={{ marginLeft: 15 }}
-                  onPress={() => navigation.navigate('Modules')} // Modifié pour naviguer explicitement vers Modules
+                  onPress={() => navigation.navigate('Modules')}
                 >
                   <MaterialCommunityIcons 
                     name="arrow-left" 

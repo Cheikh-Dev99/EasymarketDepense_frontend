@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 import {
   FlatList,
@@ -34,27 +35,7 @@ const Modules = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require("../assets/Easymarket-logo.png")}
-          style={styles.logo}
-        />
-        <Text style={styles.headerTitle}>Modules</Text>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity>
-            <Image
-              source={require("../assets/bell.png")}
-              style={{ width: 25, height: 30, marginRight: 10 }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Image
-              source={require("../assets/account.png")}
-              style={{ width: 25, height: 30 }}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Header title="Modules" />
       <View style={styles.main}>
         <FlatList
           data={mainCards}
@@ -64,7 +45,7 @@ const Modules = ({ navigation }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => navigation.navigate(item.title)}
+              onPress={() => navigation.navigate("Dépenses")}
             >
               <View style={styles.cardContent}>
                 <Image source={item.icon} style={styles.cardImage} />
@@ -90,9 +71,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 20,
     backgroundColor: "#fff",
-    elevation: 4,
-    paddingTop: 50,
-    paddingBottom: 10,
+    elevation: 3,
+    paddingTop: 30,
+    paddingBottom: 8,
   },
   logo: {
     width: 50,
