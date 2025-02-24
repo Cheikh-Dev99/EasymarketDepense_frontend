@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import Footer from "../components/Footer";
-import Header from "../components/Header";
 
 import {
   FlatList,
@@ -35,7 +34,27 @@ const Modules = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Modules" />
+      <View style={styles.header}>
+        <Image
+          source={require("../assets/Easymarket-logo.png")}
+          style={styles.logo}
+        />
+        <Text style={styles.headerTitle}>Modules</Text>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity>
+            <Image
+              source={require("../assets/bell.jpg")}
+              style={{ width: 30, height: 35, marginRight: 10 }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Image
+              source={require("../assets/account.jpg")}
+              style={{ width: 25, height: 30 }}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.main}>
         <FlatList
           data={mainCards}
@@ -45,7 +64,7 @@ const Modules = ({ navigation }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => navigation.navigate("Dépenses")}
+              onPress={() => navigation.navigate(item.title)}
             >
               <View style={styles.cardContent}>
                 <Image source={item.icon} style={styles.cardImage} />

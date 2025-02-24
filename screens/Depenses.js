@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Footer from "../components/Footer";
 import { fetchDepenses } from "../src/redux/features/depenses/depensesSlice";
-import URL from "../API_URL";
 
 import {
   ActivityIndicator,
@@ -41,7 +40,6 @@ const Depenses = ({ navigation }) => {
   };
 
   useEffect(() => {
-    console.log("Fetching depenses from URL:", URL);
     // Charger les dépenses au montage du composant
     dispatch(fetchDepenses());
 
@@ -196,7 +194,7 @@ const Depenses = ({ navigation }) => {
           <MaterialCommunityIcons name="plus" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Footer />
+      <Footer navigation={navigation} />
     </View>
   );
 };

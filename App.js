@@ -7,6 +7,9 @@ import AjoutDepenses from "./screens/AjoutDepenses";
 import Depenses from "./screens/Depenses";
 import DetailDepenses from "./screens/DetailDepenses";
 import Modules from "./screens/Modules";
+import Commandes from "./screens/Commandes";
+import Produits from "./screens/Produits";
+import Categories from "./screens/Categories";
 import { store } from "./src/redux/store";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from "react-native";
@@ -85,6 +88,30 @@ export default function App() {
                 fontWeight: "bold",
               },
             })}
+          />
+          <Stack.Screen
+            name="Commandes"
+            component={Commandes}
+            options={{ 
+              title: "Commandes",
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="Produits"
+            component={Produits}
+            options={{ 
+              title: "Produits",
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="Categories"
+            component={Categories}
+            options={{ 
+              title: "Catégories",
+              headerShown: false,
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>

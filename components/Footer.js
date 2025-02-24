@@ -8,6 +8,8 @@ const Footer = () => {
   const route = useRoute();
   const currentRoute = route.name;
 
+  const isModuleActive = ["Modules", "Dépenses", "AjoutDepenses", "DetailDepenses"].includes(currentRoute);
+
   return (
     <View style={styles.footer}>
       <TouchableOpacity
@@ -69,9 +71,9 @@ const Footer = () => {
         <Icon 
           name="cogs" 
           size={24} 
-          color={currentRoute === "Modules" ? "#FFA500" : "#000"} 
+          color={isModuleActive ? "#FFA500" : "#000"} 
         />
-        <Text style={[styles.footerText, currentRoute === "Modules" && styles.activeFooterText]}>
+        <Text style={[styles.footerText, isModuleActive && styles.activeFooterText]}>
           Modules
         </Text>
       </TouchableOpacity>
