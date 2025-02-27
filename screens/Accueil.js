@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import DatePicker from "../components/DatePicker";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import Card from "../components/Card";
+import Card from "../components/resumeCard";
 import cardsData from "../Data/cardData";
 import {
   Platform,
@@ -207,7 +207,17 @@ const Accueil = () => {
               </View>
             ))}
           </View>
-          
+          {/* Statistiques */}
+          <View style={styles.StatistiqueContainer}>
+            <Text style={styles.StatistiqueText}>Statistiques</Text>
+            <Image
+              source={require("../assets/Statistique.png")}
+              style={styles.StatistiqueImage}
+            />
+          </View>
+
+          {/* Cartes de commande*/}
+
         </View>
       </ScrollView>
       <View style={styles.footer}>
@@ -223,7 +233,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F6FA",
   },
   scrollContainer: {
-    padding: 20,
+    padding: 15,
   },
   main: {
     flex: 1,
@@ -300,11 +310,25 @@ const styles = StyleSheet.create({
   },
   dashboardContainer: {
     marginTop: 5,
+    marginBottom: 30,
     gap: 16,
   },
   twoColLayout: {
     flexDirection: "row",
     gap: 5,
+  },
+  StatistiqueContainer: {
+    marginTop: 5,
+    marginBottom: 30,
+    gap: 16,
+  },
+  StatistiqueText: {
+    fontSize: 30,
+    fontWeight: "bold",
+  },
+  StatistiqueImage: {
+    width: "100%",
+
   },
   footer: {
     marginTop: 50,
