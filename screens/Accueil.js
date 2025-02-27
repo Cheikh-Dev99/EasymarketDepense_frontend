@@ -1,8 +1,11 @@
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
 import DatePicker from "../components/DatePicker";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
+import Card from "../components/Card";
+import cardsData from "../Data/cardData";
 import {
   Platform,
   StyleSheet,
@@ -12,9 +15,7 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
-import Card from "../components/Card";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const Accueil = () => {
   const navigation = useNavigation();
@@ -51,80 +52,6 @@ const Accueil = () => {
       setEndDate(null);
     }
   };
-
-  const cardsData = [
-    {
-      id: 1,
-      fullWidth: true,
-      items: [
-        {
-          iconSource: require("../assets/screen/icons/Activity.png"),
-          price: "50.000 XOF",
-          label: "Chiffre D'affaires (CA)",
-        },
-      ],
-    },
-    {
-      id: 2,
-      items: [
-        {
-          iconSource: require("../assets/screen/icons/Rectangle.png"),
-          price: "35 000 XOF",
-          label: "Coût Des Produits Vendus",
-        },
-        {
-          iconSource: require("../assets/screen/icons/Rectangle.png"),
-          price: "20 000 XOF",
-          label: "Dépenses",
-        },
-      ],
-    },
-    {
-      id: 3,
-      items: [
-        {
-          iconSource: require("../assets/screen/icons/marge.png"),
-          price: "15 000 XOF",
-          label: "Marge : CA - Coût",
-        },
-        {
-          iconSource: require("../assets/screen/icons/depense.png"),
-          price: "30 000 XOF",
-          label: "Caisse : CA - Dépenses",
-        },
-      ],
-    },
-    {
-      id: 4,
-      items: [
-        {
-          iconSource: require("../assets/screen/icons/boucle.png"),
-          price: "35 000 XOF",
-          label: "Commande en cours",
-        },
-        {
-          iconSource: require("../assets/screen/icons/cible.png"),
-          price: "20 000 XOF",
-          label: "Commandes impayées",
-        },
-      ],
-    },
-    {
-      id: 5,
-      items: [
-        {
-          iconSource: require("../assets/screen/icons/cube.png"),
-          price: "15 000 XOF",
-          label: "Nombre d’articles",
-        },
-        {
-          iconSource: require("../assets/screen/icons/valeur.png"),
-          price: "30 000 XOF",
-          label: "Valeur du stock",
-        },
-      ],
-    },
-  ];
 
   return (
     <View style={styles.container}>
@@ -264,7 +191,7 @@ const Accueil = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Carte de résumé */}
+          {/* Cartes de résumé*/}
           <View style={styles.dashboardContainer}>
             {cardsData.map((group) => (
               <View key={group.id}>
@@ -280,6 +207,7 @@ const Accueil = () => {
               </View>
             ))}
           </View>
+          
         </View>
       </ScrollView>
       <View style={styles.footer}>
