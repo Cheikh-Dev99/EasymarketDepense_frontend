@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import Card from "../components/Card";
 
 const Accueil = () => {
   const navigation = useNavigation();
@@ -50,6 +51,80 @@ const Accueil = () => {
       setEndDate(null);
     }
   };
+
+  const cardsData = [
+    {
+      id: 1,
+      fullWidth: true,
+      items: [
+        {
+          iconSource: require("../assets/screen/icons/Activity.png"),
+          price: "50.000 XOF",
+          label: "Chiffre D'affaires (CA)",
+        },
+      ],
+    },
+    {
+      id: 2,
+      items: [
+        {
+          iconSource: require("../assets/screen/icons/Rectangle.png"),
+          price: "35 000 XOF",
+          label: "Coût Des Produits Vendus",
+        },
+        {
+          iconSource: require("../assets/screen/icons/Rectangle.png"),
+          price: "20 000 XOF",
+          label: "Dépenses",
+        },
+      ],
+    },
+    {
+      id: 3,
+      items: [
+        {
+          iconSource: require("../assets/screen/icons/marge.png"),
+          price: "15 000 XOF",
+          label: "Marge : CA - Coût",
+        },
+        {
+          iconSource: require("../assets/screen/icons/depense.png"),
+          price: "30 000 XOF",
+          label: "Caisse : CA - Dépenses",
+        },
+      ],
+    },
+    {
+      id: 4,
+      items: [
+        {
+          iconSource: require("../assets/screen/icons/boucle.png"),
+          price: "35 000 XOF",
+          label: "Commande en cours",
+        },
+        {
+          iconSource: require("../assets/screen/icons/cible.png"),
+          price: "20 000 XOF",
+          label: "Commandes impayées",
+        },
+      ],
+    },
+    {
+      id: 5,
+      items: [
+        {
+          iconSource: require("../assets/screen/icons/cube.png"),
+          price: "15 000 XOF",
+          label: "Nombre d’articles",
+        },
+        {
+          iconSource: require("../assets/screen/icons/valeur.png"),
+          price: "30 000 XOF",
+          label: "Valeur du stock",
+        },
+      ],
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -191,102 +266,19 @@ const Accueil = () => {
 
           {/* Carte de résumé */}
           <View style={styles.dashboardContainer}>
-            {/* Première ligne - Carte pleine largeur */}
-            <View style={styles.fullWidthCard}>
-              <Image
-                source={require("../assets/screen/icons/Activity.png")}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.mainPrice}>50.000 XOF</Text>
-              <Text style={styles.mainLabel}>Chiffre D'affaires (CA)</Text>
-            </View>
-
-            {/* Deuxième ligne - Deux cartes égales */}
-            <View style={styles.twoColLayout}>
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/Rectangle.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>35 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>
-                  Coût Des Produits Vendus
-                </Text>
+            {cardsData.map((group) => (
+              <View key={group.id}>
+                {group.fullWidth ? (
+                  <Card {...group.items[0]} isFullWidth={true} />
+                ) : (
+                  <View style={styles.twoColLayout}>
+                    {group.items.map((item, index) => (
+                      <Card key={index} {...item} />
+                    ))}
+                  </View>
+                )}
               </View>
-
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/Rectangle.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>20 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Dépenses</Text>
-              </View>
-            </View>
-
-            {/* Troisième ligne - Deux cartes égales */}
-            <View style={styles.twoColLayout}>
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/marge.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>15 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Marge : CA - Coût</Text>
-              </View>
-
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/depense.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>30 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>
-                  Caisse : CA - Dépenses
-                </Text>
-              </View>
-            </View>
-            {/* Deuxième ligne - Deux cartes égales */}
-            <View style={styles.twoColLayout}>
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/boucle.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>35 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Commande en cours</Text>
-              </View>
-
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/cible.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>20 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Commandes impayées</Text>
-              </View>
-            </View>
-
-            {/* Troisième ligne - Deux cartes égales */}
-            <View style={styles.twoColLayout}>
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/cube.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>15 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Nombre d’articles</Text>
-              </View>
-
-              <View style={styles.halfWidthCard}>
-                <Image
-                  source={require("../assets/screen/icons/valeur.png")}
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.secondaryPrice}>30 000 XOF</Text>
-                <Text style={styles.secondaryLabel}>Valeur du stock</Text>
-              </View>
-            </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -379,58 +371,12 @@ const styles = StyleSheet.create({
     height: 20,
   },
   dashboardContainer: {
-    marginTop: 25,
+    marginTop: 5,
     gap: 16,
-  },
-  fullWidthCard: {
-    width: "100%",
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 20,
-    alignItems: "center",
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
   },
   twoColLayout: {
     flexDirection: "row",
     gap: 5,
-  },
-  halfWidthCard: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    padding: 16,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-  },
-  mainPrice: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "black",
-    marginVertical: 8,
-  },
-  mainLabel: {
-    fontSize: 16,
-    color: "#616161",
-    textAlign: "center",
-  },
-  secondaryPrice: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#212121",
-    marginVertical: 6,
-  },
-  secondaryLabel: {
-    fontSize: 14,
-    color: "#757575",
-    lineHeight: 18,
-  },
-  cardIcon: {
-    width: 32,
-    height: 32,
-    marginBottom: 8,
   },
   footer: {
     marginTop: 50,
