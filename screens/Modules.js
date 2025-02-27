@@ -17,17 +17,17 @@ const Modules = ({ navigation }) => {
     {
       id: "1",
       title: "Promos",
-      icon: require("../assets/depense/Promos.png"),
+      icon: require("../assets/screen/Promos.png"),
     },
     {
       id: "2",
       title: "Vendeurs",
-      icon: require("../assets/depense/Vendeurs.png"),
+      icon: require("../assets/screen/Vendeurs.png"),
     },
     {
       id: "3",
       title: "Dépenses",
-      icon: require("../assets/depense/Dépenses.png"),
+      icon: require("../assets/screen/Dépenses.png"),
     },
   ];
 

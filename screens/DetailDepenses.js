@@ -57,19 +57,19 @@ const DetailDepenses = ({ navigation, route }) => {
       id: "1",
       label: "WAVE",
       value: "WAVE",
-      image: require("../assets/depense/wave.png"),
+      image: require("../assets/screen/wave.png"),
     },
     {
       id: "2",
       label: "ORANGE MONEY",
       value: "ORANGE_MONEY",
-      image: require("../assets/depense/Orange.png"),
+      image: require("../assets/screen/Orange.png"),
     },
     {
       id: "3",
       label: "FREE MONEY",
       value: "FREE_MONEY",
-      image: require("../assets/depense/free.png"),
+      image: require("../assets/screen/free.png"),
     },
     {
       id: "4",

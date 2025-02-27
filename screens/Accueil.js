@@ -1,27 +1,52 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Platform } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+} from "react-native";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 
 const Accueil = () => {
   const navigation = useNavigation();
   const [activePeriod, setActivePeriod] = useState("Aujourd'hui");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const handleDateChange = (type, selectedDate) => {
-    const currentDate = selectedDate || (type === "start" ? startDate : endDate);
-    
-    if (type === "start") {
-      setStartDate(currentDate);
-      setShowStartPicker(Platform.OS === 'ios');
+  const handleDateChange = (type, event, selectedDate) => {
+    if (event.type === "set") {
+      const currentDate = selectedDate || (type === "start" ? startDate : endDate);
+
+      if (type === "start") {
+        setStartDate(currentDate);
+        setShowStartPicker(Platform.OS === "ios");
+      } else {
+        setEndDate(currentDate);
+        setShowEndPicker(Platform.OS === "ios");
+      }
     } else {
-      setEndDate(currentDate);
-      setShowEndPicker(Platform.OS === 'ios');
+      if (type === "start") {
+        setShowStartPicker(false);
+      } else {
+        setShowEndPicker(false);
+      }
+    }
+  };
+
+  const resetDate = (type) => {
+    if (type === "start") {
+      setStartDate(null);
+    } else {
+      setEndDate(null);
     }
   };
 
@@ -107,68 +132,90 @@ const Accueil = () => {
         {/* Sélecteurs de date */}
         <View style={styles.dateContainer}>
           <TouchableOpacity
-            style={[styles.dateField, styles.dateInput]}
+            style={styles.dateInput}
             onPress={() => setShowStartPicker(true)}
           >
-            <Text style={styles.placeholder}>
-              {startDate.toLocaleDateString()}
-            </Text>
+            <View style={styles.dateContent}>
+              <Text style={styles.dateLabel}>
+                {startDate ? startDate.toLocaleDateString() : "Début période"}
+              </Text>
+              <View style={styles.iconContainer}>
+                {startDate ? (
+                  <TouchableOpacity onPress={() => resetDate("start")}>
+                    <AntDesign name="closecircle" size={20} color="red" />
+                  </TouchableOpacity>
+                ) : (
+                  <Image
+                    source={require("../assets/screen/calendrier.png")}
+                    style={styles.calendarIcon}
+                  />
+                )}
+              </View>
+            </View>
           </TouchableOpacity>
 
           <Text style={styles.arrow}>→</Text>
 
           <TouchableOpacity
-            style={[styles.dateField, styles.dateInput]}
+            style={styles.dateInput}
             onPress={() => setShowEndPicker(true)}
           >
-            <Text style={styles.placeholder}>
-              {endDate.toLocaleDateString()}
-            </Text>
+            <View style={styles.dateContent}>
+              <Text style={styles.dateLabel}>
+                {endDate ? endDate.toLocaleDateString() : "Fin période"}
+              </Text>
+              <View style={styles.iconContainer}>
+                {endDate ? (
+                  <TouchableOpacity onPress={() => resetDate("end")}>
+                    <AntDesign name="closecircle" size={20} color="red" />
+                  </TouchableOpacity>
+                ) : (
+                  <Image
+                    source={require("../assets/screen/calendrier.png")}
+                    style={styles.calendarIcon}
+                  />
+                )}
+              </View>
+            </View>
           </TouchableOpacity>
         </View>
 
         {/* Pickers pour Android */}
         {showStartPicker && Platform.OS === "android" && (
           <DateTimePicker
-            value={startDate}
+            value={startDate || new Date()}
             mode="date"
             display="spinner"
-            onChange={(event, date) => {
-              handleDateChange("start", date);
-              setShowStartPicker(false);
-            }}
+            onChange={(event, date) => handleDateChange("start", event, date)}
           />
         )}
 
         {showEndPicker && Platform.OS === "android" && (
           <DateTimePicker
-            value={endDate}
+            value={endDate || new Date()}
             mode="date"
             display="spinner"
-            onChange={(event, date) => {
-              handleDateChange("end", date);
-              setShowEndPicker(false);
-            }}
+            onChange={(event, date) => handleDateChange("end", event, date)}
           />
         )}
 
         {/* Pickers pour iOS */}
         {showStartPicker && Platform.OS === "ios" && (
           <DateTimePicker
-            value={startDate}
+            value={startDate || new Date()}
             mode="date"
             display="inline"
-            onChange={(event, date) => handleDateChange("start", date)}
+            onChange={(event, date) => handleDateChange("start", event, date)}
             style={styles.iosPicker}
           />
         )}
 
         {showEndPicker && Platform.OS === "ios" && (
           <DateTimePicker
-            value={endDate}
+            value={endDate || new Date()}
             mode="date"
             display="inline"
-            onChange={(event, date) => handleDateChange("end", date)}
+            onChange={(event, date) => handleDateChange("end", event, date)}
             style={styles.iosPicker}
           />
         )}
@@ -189,7 +236,6 @@ const styles = StyleSheet.create({
   },
   periodContainer: {
     flexDirection: "row",
-    marginBottom: 15,
     backgroundColor: "#E8E8E8",
     borderRadius: 10,
   },
@@ -217,7 +263,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderColor: "white",
     borderRadius: 10,
-    elevation: 3,
+    elevation: 5,
+    marginVertical: 2,
   },
   activeText: {
     color: "#FFA500",
@@ -227,31 +274,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    marginVertical: 15,
   },
   dateInput: {
     flex: 1,
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
+    borderBottomWidth: 1,
+    borderBottomColor: "#7A7A7A",
+    padding: 8,
   },
-  iosPicker: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    marginTop: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  dateContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  placeholder: {
-    color: "#9B9B9B",
+  dateLabel: {
+    color: "#7A7A7A",
+    fontSize: 14,
+    flex: 1,
+  },
+  iconContainer: {
+    padding: 5,
   },
   arrow: {
     fontSize: 18,
     color: "#7A7A7A",
+    marginHorizontal: 0,
+  },
+  calendarIcon: {
+    width: 20,
+    height: 20,
   },
 });
 
