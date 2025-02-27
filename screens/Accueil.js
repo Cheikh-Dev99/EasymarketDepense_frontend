@@ -70,7 +70,7 @@ const Accueil = () => {
           <TouchableOpacity
             style={[
               styles.periodButton,
-              styles.lastButton,
+              styles.middleButton,
               activePeriod === "Mois" && styles.activeButton,
             ]}
             onPress={() => setActivePeriod("Mois")}
@@ -82,6 +82,24 @@ const Accueil = () => {
               ]}
             >
               Mois
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.periodButton,
+              styles.lastButton,
+              activePeriod === "Année" && styles.activeButton,
+            ]}
+            onPress={() => setActivePeriod("Année")}
+          >
+            <Text
+              style={[
+                styles.periodText,
+                activePeriod === "Année" && styles.activeText,
+              ]}
+            >
+              Année
             </Text>
           </TouchableOpacity>
         </View>
@@ -110,7 +128,7 @@ const Accueil = () => {
         </View>
 
         {/* Pickers pour Android */}
-        {showStartPicker && Platform.OS === 'android' && (
+        {showStartPicker && Platform.OS === "android" && (
           <DateTimePicker
             value={startDate}
             mode="date"
@@ -122,7 +140,7 @@ const Accueil = () => {
           />
         )}
 
-        {showEndPicker && Platform.OS === 'android' && (
+        {showEndPicker && Platform.OS === "android" && (
           <DateTimePicker
             value={endDate}
             mode="date"
@@ -135,26 +153,24 @@ const Accueil = () => {
         )}
 
         {/* Pickers pour iOS */}
-        {Platform.OS === 'ios' && (
-          <>
-            <DateTimePicker
-              value={startDate}
-              mode="date"
-              display="inline"
-              onChange={(event, date) => handleDateChange("start", date)}
-              style={styles.iosPicker}
-              visible={showStartPicker}
-            />
+        {showStartPicker && Platform.OS === "ios" && (
+          <DateTimePicker
+            value={startDate}
+            mode="date"
+            display="inline"
+            onChange={(event, date) => handleDateChange("start", date)}
+            style={styles.iosPicker}
+          />
+        )}
 
-            <DateTimePicker
-              value={endDate}
-              mode="date"
-              display="inline"
-              onChange={(event, date) => handleDateChange("end", date)}
-              style={styles.iosPicker}
-              visible={showEndPicker}
-            />
-          </>
+        {showEndPicker && Platform.OS === "ios" && (
+          <DateTimePicker
+            value={endDate}
+            mode="date"
+            display="inline"
+            onChange={(event, date) => handleDateChange("end", date)}
+            style={styles.iosPicker}
+          />
         )}
       </View>
       <Footer navigation={navigation} />
@@ -173,33 +189,35 @@ const styles = StyleSheet.create({
   },
   periodContainer: {
     flexDirection: "row",
-    marginBottom: 20,
+    marginBottom: 15,
+    backgroundColor: "#E8E8E8",
+    borderRadius: 10,
   },
   periodButton: {
     backgroundColor: "#E8E8E8",
-    paddingVertical: 12,
+    paddingVertical: 8,
     flex: 1,
     alignItems: "center",
-    borderWidth: 1,
     borderColor: "#D0D0D0",
   },
   firstButton: {
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
-    marginRight: 2,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   lastButton: {
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
-    marginLeft: 2,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
   },
   periodText: {
     color: "#000",
     fontSize: 14,
+    fontWeight: "bold",
   },
   activeButton: {
     backgroundColor: "#fff",
-    borderColor: "#FFA500",
+    borderColor: "white",
+    borderRadius: 10,
+    elevation: 3,
   },
   activeText: {
     color: "#FFA500",
@@ -219,10 +237,10 @@ const styles = StyleSheet.create({
     borderColor: "#E8E8E8",
   },
   iosPicker: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
     marginTop: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,

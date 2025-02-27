@@ -157,19 +157,19 @@ const AjoutDepenses = ({ navigation }) => {
       id: "1",
       label: "WAVE",
       value: "WAVE",
-      image: require("../assets/wave.png"),
+      image: require("../assets/depense/wave.png"),
     },
     {
       id: "2",
       label: "ORANGE MONEY",
       value: "ORANGE_MONEY",
-      image: require("../assets/Orange.png"),
+      image: require("../assets/depense/Orange.png"),
     },
     {
       id: "3",
       label: "FREE MONEY",
       value: "FREE_MONEY",
-      image: require("../assets/free.png"),
+      image: require("../assets/depense/free.png"),
     },
     {
       id: "4",
@@ -293,7 +293,7 @@ const AjoutDepenses = ({ navigation }) => {
 
         <Text style={styles.label}>Moyen de paiement utilisé</Text>
         <TouchableOpacity
-          style={styles.paymentSelector}
+          style={styles.depenseelector}
           onPress={() => setShowPaymentModal(true)}
         >
           <View style={styles.selectedPayment}>
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 18,
   },
-  paymentSelector: {
+  depenseelector: {
     height: 60,
     borderWidth: 1,
     borderRadius: 5,

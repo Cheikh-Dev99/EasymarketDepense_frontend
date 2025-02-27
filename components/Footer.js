@@ -1,7 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native"
 
 const Footer = () => {
   const navigation = useNavigation();
@@ -16,12 +15,19 @@ const Footer = () => {
         onPress={() => navigation.navigate("Accueil")}
         style={styles.footerItem}
       >
-        <Icon 
-          name="home" 
-          size={24} 
-          color={currentRoute === "Accueil" ? "#FFA500" : "#000"} 
+        <Image
+          source={require("../assets/footer/Accueil.png")}
+          style={[
+            styles.footerIcon,
+            { tintColor: currentRoute === "Accueil" ? "#FFA500" : "#000" },
+          ]}
         />
-        <Text style={[styles.footerText, currentRoute === "Accueil" && styles.activeFooterText]}>
+        <Text
+          style={[
+            styles.footerText,
+            currentRoute === "Accueil" && styles.activeFooterText,
+          ]}
+        >
           Accueil
         </Text>
       </TouchableOpacity>
@@ -29,12 +35,19 @@ const Footer = () => {
         onPress={() => navigation.navigate("Commandes")}
         style={styles.footerItem}
       >
-        <Icon 
-          name="list-alt" 
-          size={24} 
-          color={currentRoute === "Commandes" ? "#FFA500" : "#000"} 
+        <Image
+          source={require("../assets/footer/Commandes.png")}
+          style={[
+            styles.footerIcon,
+            { tintColor: currentRoute === "Commandes" ? "#FFA500" : "#000" },
+          ]}
         />
-        <Text style={[styles.footerText, currentRoute === "Commandes" && styles.activeFooterText]}>
+        <Text
+          style={[
+            styles.footerText,
+            currentRoute === "Commandes" && styles.activeFooterText,
+          ]}
+        >
           Commandes
         </Text>
       </TouchableOpacity>
@@ -42,12 +55,19 @@ const Footer = () => {
         onPress={() => navigation.navigate("Produits")}
         style={styles.footerItem}
       >
-        <Icon 
-          name="tags" 
-          size={24} 
-          color={currentRoute === "Produits" ? "#FFA500" : "#000"} 
+        <Image
+          source={require("../assets/footer/Produits.png")}
+          style={[
+            styles.footerIcon,
+            { tintColor: currentRoute === "Produits" ? "#FFA500" : "#000" },
+          ]}
         />
-        <Text style={[styles.footerText, currentRoute === "Produits" && styles.activeFooterText]}>
+        <Text
+          style={[
+            styles.footerText,
+            currentRoute === "Produits" && styles.activeFooterText,
+          ]}
+        >
           Produits
         </Text>
       </TouchableOpacity>
@@ -55,12 +75,19 @@ const Footer = () => {
         onPress={() => navigation.navigate("Categories")}
         style={styles.footerItem}
       >
-        <Icon 
-          name="th-large" 
-          size={24} 
-          color={currentRoute === "Categories" ? "#FFA500" : "#000"} 
+        <Image
+          source={require("../assets/footer/Categories.png")}
+          style={[
+            styles.footerIcon,
+            { tintColor: currentRoute === "Categories" ? "#FFA500" : "#000" },
+          ]}
         />
-        <Text style={[styles.footerText, currentRoute === "Categories" && styles.activeFooterText]}>
+        <Text
+          style={[
+            styles.footerText,
+            currentRoute === "Categories" && styles.activeFooterText,
+          ]}
+        >
           Catégories
         </Text>
       </TouchableOpacity>
@@ -68,12 +95,16 @@ const Footer = () => {
         onPress={() => navigation.navigate("Modules")}
         style={styles.footerItem}
       >
-        <Icon 
-          name="cogs" 
-          size={24} 
-          color={isModuleActive ? "#FFA500" : "#000"} 
+        <Image
+          source={require("../assets/footer/Modules.png")}
+          style={[
+            styles.footerIcon,
+            { tintColor: isModuleActive ? "#FFA500" : "#000" },
+          ]}
         />
-        <Text style={[styles.footerText, isModuleActive && styles.activeFooterText]}>
+        <Text
+          style={[styles.footerText, isModuleActive && styles.activeFooterText]}
+        >
           Modules
         </Text>
       </TouchableOpacity>
@@ -92,6 +123,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
+  },
+  footerIcon: {
+    width: 24,
+    height: 24,
   },
   footerItem: {
     alignItems: "center",

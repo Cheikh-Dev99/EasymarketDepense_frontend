@@ -1,11 +1,10 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 import {
   FlatList,
   Image,
-  ImageBackground,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,43 +17,23 @@ const Modules = ({ navigation }) => {
     {
       id: "1",
       title: "Promos",
-      icon: require("../assets/Promos.png"),
+      icon: require("../assets/depense/Promos.png"),
     },
     {
       id: "2",
       title: "Vendeurs",
-      icon: require("../assets/Vendeurs.png"),
+      icon: require("../assets/depense/Vendeurs.png"),
     },
     {
       id: "3",
       title: "Dépenses",
-      icon: require("../assets/Dépenses.png"),
+      icon: require("../assets/depense/Dépenses.png"),
     },
   ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require("../assets/Easymarket-logo.png")}
-          style={styles.logo}
-        />
-        <Text style={styles.headerTitle}>Modules</Text>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity>
-            <Image
-              source={require("../assets/bell.jpg")}
-              style={{ width: 30, height: 35, marginRight: 10 }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Image
-              source={require("../assets/account.jpg")}
-              style={{ width: 25, height: 30 }}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Header title="Modules" />
       <View style={styles.main}>
         <FlatList
           data={mainCards}

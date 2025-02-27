@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Header = ({ title }) => {
   const navigation = useNavigation();
@@ -9,20 +8,20 @@ const Header = ({ title }) => {
   return (
     <View style={styles.header}>
       <Image
-        source={require("../assets/Easymarket-logo.png")}
+        source={require("../assets/header/Easymarket-logo.png")}
         style={styles.logo}
       />
       <Text style={styles.headerTitle}>{title}</Text>
       <View style={styles.headerIcons}>
         <TouchableOpacity>
           <Image
-            source={require("../assets/bell.jpg")}
+            source={require("../assets/header/bell.jpg")}
             style={{ width: 30, height: 35, marginRight: 10 }}
           />
         </TouchableOpacity>
         <TouchableOpacity>
           <Image
-            source={require("../assets/account.jpg")}
+            source={require("../assets/header/account.jpg")}
             style={{ width: 25, height: 30 }}
           />
         </TouchableOpacity>
