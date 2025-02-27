@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import DatePicker from "../components/DatePicker";
 import Footer from "../components/Footer";
@@ -216,7 +216,85 @@ const Accueil = () => {
             />
           </View>
 
-          {/* Cartes de commande*/}
+          {/* Cartes de commande */}
+          <View style={styles.commandSection}>
+            <Text style={styles.sectionTitle}>
+              Nombre de commandes par canal
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.channelsContainer}
+            >
+              {[
+                {
+                  count: 25,
+                  channel: "WhatsApp",
+                  Image: require("../assets/screen/icons/WhatsApp.png"),
+                },
+                {
+                  count: 5,
+                  channel: "Instagram",
+                  Image: require("../assets/screen/icons/Instagram.png"),
+                },
+                {
+                  count: 5,
+                  channel: "TikTok",
+                  Image: require("../assets/screen/icons/TikTok.png"),
+                },
+                {
+                  count: 5,
+                  channel: "Facebook",
+                  Image: require("../assets/screen/icons/Facebook.png"),
+                },
+              ].map((item, index) => (
+                <View key={index} style={styles.channelCard}>
+                  <Image source={item.Image} style={styles.channelIcon} />
+                  <Text style={styles.orderCount}>{item.count}</Text>
+                  <Text style={styles.channelName}>{item.channel}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Cartes de chiffre d'affaire */}
+          <View style={styles.chiffreAffaireContainer}>
+            <Text style={styles.sectionTitle}>Chiffre d'affaire par canal</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chiffreScrollContainer}
+            >
+              {[
+                {
+                  count: "20 000 XOF",
+                  channel: "WhatsApp",
+                  Image: require("../assets/screen/icons/WhatsApp.png"),
+                },
+                {
+                  count: "15 000 XOF",
+                  channel: "Instagram",
+                  Image: require("../assets/screen/icons/Instagram.png"),
+                },
+                {
+                  count: "10 000 XOF",
+                  channel: "TikTok",
+                  Image: require("../assets/screen/icons/TikTok.png"),
+                },
+                {
+                  count: "5 000 XOF",
+                  channel: "Facebook",
+                  Image: require("../assets/screen/icons/Facebook.png"),
+                },
+              ].map((item, index) => (
+                <View key={index} style={styles.chiffreCard}>
+                  <Image source={item.Image} style={styles.caIcon} />
+                  <Text style={styles.caValue}>{item.count}</Text>
+                  <Text style={styles.caChannel}>{item.channel}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
 
         </View>
       </ScrollView>
@@ -319,16 +397,101 @@ const styles = StyleSheet.create({
   },
   StatistiqueContainer: {
     marginTop: 5,
-    marginBottom: 30,
+    marginBottom: 20,
     gap: 16,
   },
   StatistiqueText: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: "bold",
   },
   StatistiqueImage: {
     width: "100%",
-
+  },
+  commandSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 25,
+    fontWeight: "600",
+    color: "#2D2D2D",
+    marginBottom: 15,
+    paddingHorizontal: 5,
+  },
+  channelsContainer: {
+    paddingLeft: 5,
+    paddingVertical: 5,
+    gap: 5,
+  },
+  channelCard: {
+    width: 120,
+    height: 120,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 1,
+    marginRight: 8,
+    position: "relative",
+  },
+  channelIcon: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+  },
+  orderCount: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "black",
+    marginBottom: 8,
+    marginTop: 20,
+  },
+  channelName: {
+    fontSize: 14,
+    color: "gray",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  chiffreAffaireContainer: {
+    paddingLeft: 5,
+    paddingVertical: 5,
+    gap: 8,
+  },
+  chiffreScrollContainer: {
+    paddingLeft: 5,
+    gap: 5,
+    paddingBottom: 15,
+  },
+  chiffreCard: {
+    width: 180,
+    height: 120,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 1,
+    marginRight: 8,
+    position: "relative",
+  },
+  caIcon: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+  },
+  caValue: {
+    fontSize: 25,
+    fontWeight: "700",
+    color: "black",
+    marginBottom: 8,
+    marginTop: 20,
+    marginLeft: 20,
+  },
+  caChannel: {
+    fontSize: 16,
+    color: "#616161",
+    textAlign: "center",
+    fontWeight: "500",
   },
   footer: {
     marginTop: 50,
